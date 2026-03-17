@@ -1,7 +1,7 @@
 <?php
 include 'includes\db.php';
 
-$result = $conn->query("SELECT * FROM icas");
+$result = $conn->query("SELECT * FROM users");
 ?>
 
 <!DOCTYPE html>
@@ -45,7 +45,7 @@ $result = $conn->query("SELECT * FROM icas");
 
     <div class="stats-row">
       <div class="stat">
-        <div class="stat-num">12K+</div>
+        <div class="stat-num">2+</div>
         <div class="stat-label">Students</div>
       </div>
       <div class="stat">
@@ -70,111 +70,101 @@ $result = $conn->query("SELECT * FROM icas");
       </div>
 
       <!-- ── LOGIN FORM ── -->
-      <div class="form-view active" id="view-login">
-        <div class="form-title">Welcome back</div>
-        <div class="form-sub">Sign in to your SANS account</div>
+<div class="form-view active" id="view-login">
 
-        <div class="alert alert-error" id="login-alert">
-          <span>⚠️</span><span id="login-alert-msg">Invalid email or password. Please try again.</span>
-        </div>
+<div class="form-title">Welcome back</div>
+<div class="form-sub">Sign in to your SANS account</div>
 
-        <div class="field-group">
-          <label class="field-label">Email Address</label>
-          <div class="field-wrap">
-            <span class="field-icon">✉️</span>
-            <input type="email" id="login-email" placeholder="your@school.edu" autocomplete="email"/>
-          </div>
-          <div class="field-error" id="login-email-err">Please enter a valid email address.</div>
-        </div>
+<form action="login.php" method="POST">
 
-        <div class="field-group">
-          <label class="field-label">Password</label>
-          <div class="field-wrap">
-            <span class="field-icon">🔒</span>
-            <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password"/>
-            <button class="toggle-pw" onclick="togglePw('login-password', this)" type="button">👁️</button>
-          </div>
-          <div class="field-error" id="login-pw-err">Password is required.</div>
-        </div>
+<div class="field-group">
+<label class="field-label">Email Address</label>
 
-        <div class="field-meta">
-          <a href="#" class="forgot-link" onclick="showForgot(event)">Forgot password?</a>
-        </div>
+<div class="field-wrap">
+<span class="field-icon">✉️</span>
 
-        <button class="btn-submit" id="btn-login" onclick="handleLogin()">
-          <span class="btn-label">Sign In →</span>
-          <div class="spinner"></div>
-        </button>
-      </div>
+<input type="email" name="email" placeholder="your@school.edu" required>
+
+</div>
+</div>
+
+<div class="field-group">
+
+<label class="field-label">Password</label>
+
+<div class="field-wrap">
+
+<span class="field-icon">🔒</span>
+
+<input type="password" name="password" placeholder="Enter your password" required>
+
+</div>
+
+</div>
+
+<div class="field-meta">
+<a href="#" class="forgot-link">Forgot password?</a>
+</div>
+
+<button class="btn-submit" type="submit" name="login">
+
+<span class="btn-label">Sign In →</span>
+
+</button>
+
+</form>
+
+</div>
 
       <!-- ── REGISTER FORM ── -->
-      <div class="form-view" id="view-register">
+     <form action="register.php" method="POST">
 
-        <div id="reg-form-wrap">
-          <div class="form-title">Create Account</div>
-          <div class="form-sub">Join the SANS system today</div>
+<div class="field-group">
+<label class="field-label">Full Name</label>
+<div class="field-wrap">
+<span class="field-icon">👤</span>
+<input type="text" name="fullname" placeholder="e.g. Maria Santos" required>
+</div>
+</div>
 
-          <div class="alert alert-error" id="reg-alert">
-            <span>⚠️</span><span id="reg-alert-msg">Please fix the errors above.</span>
-          </div>
+<div class="field-group">
+<label class="field-label">Email Address</label>
+<div class="field-wrap">
+<span class="field-icon">✉️</span>
+<input type="email" name="email" placeholder="your@school.edu" required>
+</div>
+</div>
 
-          <div class="field-group">
-            <label class="field-label">Full Name</label>
-            <div class="field-wrap">
-              <span class="field-icon">👤</span>
-              <input type="text" id="reg-name" placeholder="e.g. Maria Santos" autocomplete="name"/>
-            </div>
-            <div class="field-error" id="reg-name-err">Full name is required.</div>
-          </div>
+<div class="field-group role-select">
+<label class="field-label">Role</label>
+<div class="field-wrap">
+<span class="field-icon">🏫</span>
 
-          <div class="field-group">
-            <label class="field-label">Email Address</label>
-            <div class="field-wrap">
-              <span class="field-icon">✉️</span>
-              <input type="email" id="reg-email" placeholder="your@school.edu" autocomplete="email"/>
-            </div>
-            <div class="field-error" id="reg-email-err">Please enter a valid email.</div>
-          </div>
+<select name="role" required>
+<option value="">Select your role</option>
+<option value="admin">Administrator</option>
+<option value="teacher">Teacher</option>
+<option value="parent">Parent</option>
+</select>
 
-          <div class="field-group role-select">
-            <label class="field-label">Role</label>
-            <div class="field-wrap">
-              <span class="field-icon">🏫</span>
-              <select id="reg-role">
-                <option value="" disabled selected>Select your role…</option>
-                <option value="admin">Administrator</option>
-                <option value="teacher">Teacher</option>
-                <option value="parent">Parent / Guardian</option>
-              </select>
-            </div>
-            <div class="field-error" id="reg-role-err">Please select a role.</div>
-          </div>
+</div>
+</div>
 
-          <div class="field-group">
-            <label class="field-label">Password</label>
-            <div class="field-wrap">
-              <span class="field-icon">🔒</span>
-              <input type="password" id="reg-pw" placeholder="Minimum 8 characters"/>
-              <button class="toggle-pw" onclick="togglePw('reg-pw', this)" type="button">👁️</button>
-            </div>
-            <div class="field-error" id="reg-pw-err">Password must be at least 8 characters.</div>
-          </div>
+<div class="field-group">
+<label>Password</label>
+<input type="password" name="password" required>
+</div>
 
-          <div class="field-group">
-            <label class="field-label">Confirm Password</label>
-            <div class="field-wrap">
-              <span class="field-icon">🔑</span>
-              <input type="password" id="reg-pw2" placeholder="Re-enter your password"/>
-              <button class="toggle-pw" onclick="togglePw('reg-pw2', this)" type="button">👁️</button>
-            </div>
-            <div class="field-error" id="reg-pw2-err">Passwords do not match.</div>
-          </div>
+<div class="field-group">
+<label>Confirm Password</label>
+<input type="password" name="confirm_password" required>
+</div>
 
-          <button class="btn-submit" id="btn-register" onclick="handleRegister()">
-            <span class="btn-label">Create Account →</span>
-            <div class="spinner"></div>
-          </button>
-        </div>
+<button type="submit" name="register" class="btn-submit">
+Create Account →
+</button>
+
+</form>
 
         <!-- Success Splash -->
         <div class="success-splash" id="reg-success">
