@@ -15,19 +15,185 @@ $role = $_SESSION['role'];
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Student Dashboard - SANS</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 <style>
-/* Reuse same styles from admin */
-<?php include 'dashboard_styles.css'; ?> 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    display: flex;
+    background: #f4f7fb;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 240px;
+    height: 100vh;
+    background: #1e3a8a;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.nav a {
+    display: block;
+    padding: 12px;
+    margin: 8px 0;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.nav a:hover {
+    background: #3b82f6;
+}
+
+.logout a {
+    display: block;
+    padding: 10px;
+    background: #ef4444;
+    text-align: center;
+    border-radius: 8px;
+    color: white;
+    text-decoration: none;
+}
+
+.logout a:hover {
+    background: #dc2626;
+}
+
+/* Main */
+.main {
+    flex: 1;
+    padding: 25px;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.welcome {
+    font-size: 22px;
+    font-weight: 500;
+}
+
+.role {
+    background: #3b82f6;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+/* Cards */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card h3 {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 10px;
+}
+
+.card p {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+/* Table */
+.table {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.table h3 {
+    margin-bottom: 15px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table th {
+    background: #f1f5f9;
+    padding: 12px;
+    text-align: left;
+}
+
+table td {
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Status Colors */
+.present {
+    color: green;
+    font-weight: 500;
+}
+
+.absent {
+    color: red;
+    font-weight: 500;
+}
+
+/* Responsive */
+@media(max-width: 768px){
+    .sidebar {
+        display: none;
+    }
+}
 </style>
 </head>
+
 <body>
 
 <div class="sidebar">
-    <div class="logo">🎓 SANS</div>
-    <div class="nav">
-        <a href="#">Dashboard</a>
-        <a href="#">My Attendance</a>
-        <a href="#">Notifications</a>
+    <div>
+        <div class="logo">🎓 SANS</div>
+        <div class="nav">
+            <a href="#">🏠 Dashboard</a>
+            <a href="#">📅 My Attendance</a>
+            <a href="#">🔔 Notifications</a>
+        </div>
     </div>
     <div class="logout">
         <a href="logout.php">Logout</a>
@@ -35,26 +201,49 @@ $role = $_SESSION['role'];
 </div>
 
 <div class="main">
+
     <div class="header">
         <div class="welcome">Welcome, <?php echo $name; ?> 👋</div>
         <div class="role"><?php echo ucfirst($role); ?></div>
     </div>
 
     <div class="cards">
-        <div class="card"><h3>Days Present</h3><p>110</p></div>
-        <div class="card"><h3>Days Absent</h3><p>10</p></div>
-        <div class="card"><h3>Notifications</h3><p>3</p></div>
+        <div class="card">
+            <h3>Days Present</h3>
+            <p style="color: green;">110</p>
+        </div>
+        <div class="card">
+            <h3>Days Absent</h3>
+            <p style="color: red;">10</p>
+        </div>
+        <div class="card">
+            <h3>Notifications</h3>
+            <p>3</p>
+        </div>
     </div>
 
     <div class="table">
         <h3>My Recent Attendance</h3>
         <table>
-            <tr><th>Date</th><th>Status</th></tr>
-            <tr><td>March 17, 2026</td><td>Present</td></tr>
-            <tr><td>March 16, 2026</td><td>Present</td></tr>
-            <tr><td>March 15, 2026</td><td>Absent</td></tr>
+            <tr>
+                <th>Date</th>
+                <th>Status</th>
+            </tr>
+            <tr>
+                <td>March 17, 2026</td>
+                <td class="present">Present</td>
+            </tr>
+            <tr>
+                <td>March 16, 2026</td>
+                <td class="present">Present</td>
+            </tr>
+            <tr>
+                <td>March 15, 2026</td>
+                <td class="absent">Absent</td>
+            </tr>
         </table>
     </div>
+
 </div>
 
 </body>

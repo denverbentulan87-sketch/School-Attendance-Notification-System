@@ -1,5 +1,4 @@
 <?php
-// Include database connection
 include 'includes/db.php';
 
 // Fetch all users (not used in this page currently, but could be used for admin overview)
@@ -12,7 +11,7 @@ $result = $conn->query("SELECT * FROM users");
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SANS — School Attendance & Notification System</title>
-  
+
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   
