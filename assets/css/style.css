@@ -98,10 +98,10 @@
       display: flex; gap: 40px;
     }
 
-    .stat { }
+    .stat { 
     .stat-num { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 600; color: var(--amber); }
     .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }
-
+    }
     .deco-orb {
       position: absolute;
       border-radius: 50%;

@@ -25,10 +25,14 @@ if(isset($_POST['login'])){
 
         if(password_verify($password, $user['password'])){
 
-            // Store session
+            // ✅ STORE ALL IMPORTANT SESSION DATA
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['name'] = $user['fullname'];
             $_SESSION['role'] = $user['role'];
+            $_SESSION['email'] = $user['email']; // ✅ FIX ADDED
+
+            // 🔒 Optional: regenerate session ID for security
+            session_regenerate_id(true);
 
             // 🔥 Role-based redirection
             if($user['role'] == 'admin'){
@@ -37,7 +41,7 @@ if(isset($_POST['login'])){
             elseif($user['role'] == 'student'){
                 header("Location: student_dashboard.php");
             }
-            elseif($user['role'] == 'parent' ){
+            elseif($user['role'] == 'parent'){
                 header("Location: parent_dashboard.php");
             }
             else{

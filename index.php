@@ -23,7 +23,7 @@ $result = $conn->query("SELECT * FROM users");
 
 <!-- Background layers for design -->
 <div class="bg-layer"></div>
-<div class="grid-overlay"></div>
+<div class="grid-overlay"></div>  
 
 <div class="page">
 

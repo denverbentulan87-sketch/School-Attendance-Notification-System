@@ -8,6 +8,7 @@ if(!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'parent'){
 
 $name = $_SESSION['name'];
 $role = $_SESSION['role'];
+$page = $_GET['page'] ?? 'dashboard';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -31,7 +32,7 @@ body {
     background: #f4f7fb;
 }
 
-/* Sidebar */
+/* ✅ SIDEBAR (MATCH ADMIN STYLE) */
 .sidebar {
     width: 240px;
     height: 100vh;
@@ -50,26 +51,37 @@ body {
     margin-bottom: 30px;
 }
 
+/* NAV */
 .nav a {
-    display: block;
-    padding: 12px;
-    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    margin: 6px 0;
     color: white;
     text-decoration: none;
-    border-radius: 8px;
-    transition: 0.3s;
+    border-radius: 10px;
+    transition: 0.25s;
 }
 
+/* HOVER */
 .nav a:hover {
-    background: #3b82f6;
+    background: rgba(255,255,255,0.15);
 }
 
+/* ACTIVE */
+.nav a.active {
+    background: #3b82f6;
+    font-weight: 500;
+}
+
+/* LOGOUT */
 .logout a {
     display: block;
     padding: 10px;
     background: #ef4444;
     text-align: center;
-    border-radius: 8px;
+    border-radius: 10px;
     color: white;
     text-decoration: none;
 }
@@ -78,13 +90,13 @@ body {
     background: #dc2626;
 }
 
-/* Main Content */
+/* MAIN */
 .main {
     flex: 1;
     padding: 25px;
 }
 
-/* Header */
+/* HEADER */
 .header {
     display: flex;
     justify-content: space-between;
@@ -105,10 +117,10 @@ body {
     font-size: 14px;
 }
 
-/* Cards */
+/* ✅ CARDS (MATCH ADMIN STYLE) */
 .cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
     margin-bottom: 30px;
 }
@@ -132,12 +144,11 @@ body {
 }
 
 .card p {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 600;
-    color: #111827;
 }
 
-/* Table */
+/* TABLE */
 .table {
     background: white;
     padding: 20px;
@@ -165,17 +176,18 @@ table td {
     border-bottom: 1px solid #e5e7eb;
 }
 
+/* STATUS COLORS */
 .present {
-    color: green;
+    color: #16a34a;
     font-weight: 500;
 }
 
 .absent {
-    color: red;
+    color: #dc2626;
     font-weight: 500;
 }
 
-/* Responsive */
+/* RESPONSIVE */
 @media(max-width: 768px){
     .sidebar {
         display: none;
@@ -186,21 +198,25 @@ table td {
 
 <body>
 
+<!-- SIDEBAR -->
 <div class="sidebar">
     <div>
         <div class="logo">🎓 SANS</div>
+
         <div class="nav">
-            <a href="#">🏠 Dashboard</a>
-            <a href="#">👨‍👩‍👧 My Children</a>
-            <a href="#">📅 Attendance</a>
-            <a href="#">🔔 Notifications</a>
+            <a href="?page=dashboard" class="<?= $page=='dashboard'?'active':'' ?>">🏠 Dashboard</a>
+            <a href="?page=children" class="<?= $page=='children'?'active':'' ?>">👨‍👩‍👧 My Children</a>
+            <a href="?page=attendance" class="<?= $page=='attendance'?'active':'' ?>">📅 Attendance</a>
+            <a href="?page=notifications" class="<?= $page=='notifications'?'active':'' ?>">🔔 Notifications</a>
         </div>
     </div>
+
     <div class="logout">
         <a href="logout.php">Logout</a>
     </div>
 </div>
 
+<!-- MAIN -->
 <div class="main">
 
     <div class="header">
@@ -208,45 +224,29 @@ table td {
         <div class="role"><?php echo ucfirst($role); ?></div>
     </div>
 
-    <div class="cards">
-        <div class="card">
-            <h3>Children Enrolled</h3>
-            <p>2</p>
-        </div>
-        <div class="card">
-            <h3>Present Today</h3>
-            <p>2</p>
-        </div>
-        <div class="card">
-            <h3>Absent Today</h3>
-            <p>0</p>
-        </div>
-        <div class="card">
-            <h3>Notifications</h3>
-            <p>5</p>
-        </div>
-    </div>
+    <?php
+    switch($page) {
+        case 'dashboard':
+            include 'parent_pages/dashboard.php';
+            break;
 
-    <div class="table">
-        <h3>Recent Attendance</h3>
-        <table>
-            <tr>
-                <th>Child</th>
-                <th>Date</th>
-                <th>Status</th>
-            </tr>
-            <tr>
-                <td>Juan Dela Cruz</td>
-                <td>March 17, 2026</td>
-                <td class="present">Present</td>
-            </tr>
-            <tr>
-                <td>Maria Dela Cruz</td>
-                <td>March 17, 2026</td>
-                <td class="present">Present</td>
-            </tr>
-        </table>
-    </div>
+        case 'children':
+            include 'parent_pages/children.php';
+            break;
+
+        case 'attendance':
+            include 'parent_pages/attendance.php';
+            break;
+
+        case 'notifications':
+            include 'parent_pages/notifications.php';
+            break;
+
+        default:
+            include 'parent_pages/dashboard.php';
+            break;
+    }
+    ?>
 
 </div>
 
