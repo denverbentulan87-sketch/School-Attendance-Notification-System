@@ -72,7 +72,7 @@ body{margin:0;font-family:Poppins;background:#f4f7fb;display:flex;}
 <div class="sidebar">
 
     <div>
-        <h2>🎓 SANS</h2>
+        <h2>🎓 EduTrack</h2>
 
         <a href="?page=dashboard" class="<?= $page=='dashboard'?'active':'' ?>">🏠 Dashboard</a>
         <a href="?page=attendance" class="<?= $page=='attendance'?'active':'' ?>">📅 My Attendance</a>

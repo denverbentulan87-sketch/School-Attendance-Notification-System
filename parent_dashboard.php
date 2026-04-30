@@ -201,7 +201,7 @@ table td {
 <!-- SIDEBAR -->
 <div class="sidebar">
     <div>
-        <div class="logo">🎓 SANS</div>
+        <div class="logo">🎓 EduTrack</div>
 
         <div class="nav">
             <a href="?page=dashboard" class="<?= $page=='dashboard'?'active':'' ?>">🏠 Dashboard</a>

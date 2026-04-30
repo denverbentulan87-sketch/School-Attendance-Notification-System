@@ -37,7 +37,7 @@ $result = $conn->query("SELECT * FROM users");
     <div class="school-badge">
       <div class="badge-icon">🎓</div>
       <div class="badge-text">
-        <div class="brand">Inabanga College of Arts & Sciences</div>
+        <div class="brand">Inabanga College of Arts  & Sciences</div>
         <div class="tagline">School Attendance & Notification System</div>
       </div>
     </div>
@@ -104,7 +104,7 @@ $result = $conn->query("SELECT * FROM users");
             <div class="field-wrap">
               <span class="field-icon">🔒</span>
               <input type="password" name="password" placeholder="Enter your password" required>
-            </div>
+            </div>  
           </div>
 
           <!-- Forgot password link -->
