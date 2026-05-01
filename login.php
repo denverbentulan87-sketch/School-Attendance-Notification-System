@@ -1,62 +1,57 @@
 <?php
-
 session_start();
 include "includes/db.php";
 
-if(isset($_POST['login'])){
+if (isset($_POST['login'])) {
 
-    $email = trim($_POST['email']); 
-    $password = $_POST['password']; 
+    $email    = trim($_POST['email']);
+    $password = $_POST['password'];
 
-    if(empty($email) || empty($password)){
-        echo "Please enter email and password.";
+    if (empty($email) || empty($password)) {
+        header("Location: index.php?error=Please+fill+in+all+fields");
         exit();
     }
 
-    $sql = "SELECT * FROM users WHERE email=?";
-    $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, "s", $email);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
+    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    if(mysqli_num_rows($result) == 1){
-
-        $user = mysqli_fetch_assoc($result);
-
-        if(password_verify($password, $user['password'])){
-
-            // ✅ STORE ALL IMPORTANT SESSION DATA
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['name'] = $user['fullname'];
-            $_SESSION['role'] = $user['role'];
-            $_SESSION['email'] = $user['email']; // ✅ FIX ADDED
-
-            // 🔒 Optional: regenerate session ID for security
-            session_regenerate_id(true);
-
-            // 🔥 Role-based redirection
-            if($user['role'] == 'admin'){
-                header("Location: admin_dashboard.php");
-            }
-            elseif($user['role'] == 'student'){
-                header("Location: student_dashboard.php");
-            }
-            elseif($user['role'] == 'parent'){
-                header("Location: parent_dashboard.php");
-            }
-            else{
-                echo "Invalid role.";
-            }
-
-            exit();
-
-        } else {
-            echo "Incorrect password.";
-        }
-
-    } else {
-        echo "Account not found.";
+    if ($result->num_rows === 0) {
+        header("Location: index.php?error=Invalid+email+or+password");
+        exit();
     }
 
+    $user = $result->fetch_assoc();
+
+    if (!password_verify($password, $user['password'])) {
+        header("Location: index.php?error=Invalid+email+or+password");
+        exit();
+    }
+
+    // Set session
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['name']    = $user['fullname'];
+    $_SESSION['role']    = $user['role'];
+
+    // Role-based redirect
+    switch ($user['role']) {
+        case 'admin':
+            header("Location: admin_dashboard.php");
+            break;
+        case 'teacher':
+            header("Location: teacher_dashboard.php");
+            break;
+        case 'student':
+            header("Location: student_dashboard.php");
+            break;
+        case 'parent':
+            header("Location: parent_dashboard.php");
+            break;
+        default:
+            header("Location: index.php?error=Unknown+role");
+            break;
+    }
+    exit();
 }
 ?>

@@ -4,7 +4,7 @@ include 'includes/db.php';
 $today = date('Y-m-d');
 
 
-$total = $conn->query("SELECT COUNT(*) as total FROM user WHERE role='student'")
+$total = $conn->query("SELECT COUNT(*) as total FROM users WHERE role='student'")
               ->fetch_assoc()['total'];
 
 $present = $conn->query("
