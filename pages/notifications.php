@@ -2,190 +2,288 @@
 if (session_status() == PHP_SESSION_NONE) session_start();
 include 'includes/db.php';
 
-$success = "";
-$error   = "";
+// ── Stats ──────────────────────────────────────────────────────────────
+$today = date('Y-m-d');
 
-if(isset($_POST['send'])){
-    $msg = trim($_POST['message']);
-    if(!empty($msg)){
-        $stmt = $conn->prepare("INSERT INTO notifications (message, created_at) VALUES (?, NOW())");
-        $stmt->bind_param("s", $msg);
-        $stmt->execute();
-        $success = "Notification sent successfully!";
-    } else {
-        $error = "Message cannot be empty.";
-    }
+$r = $conn->query("SELECT status, COUNT(*) as cnt FROM attendance WHERE scan_date = '$today' AND status IN ('absent','late') GROUP BY status");
+$counts = ['absent' => 0, 'late' => 0];
+while ($row = $r->fetch_assoc()) $counts[$row['status']] = (int)$row['cnt'];
+
+$totalRow = $conn->query("
+    SELECT COUNT(*) as total
+    FROM attendance a
+    JOIN users u ON u.id = a.student_id
+    WHERE a.status IN ('absent','late')
+      AND u.parent_email IS NOT NULL AND u.parent_email != ''
+")->fetch_assoc();
+$totalSent = $totalRow['total'] ?? 0;
+
+// ── Recent notification log (last 100) ──────────────────────────────────
+$log = $conn->query("
+    SELECT
+        u.fullname   AS student_name,
+        u.parent_email,
+        a.status,
+        a.scan_date,
+        a.scan_time
+    FROM attendance a
+    JOIN users u ON u.id = a.student_id
+    WHERE a.status IN ('absent','late')
+      AND u.parent_email IS NOT NULL AND u.parent_email != ''
+    ORDER BY a.scan_date DESC, a.scan_time DESC
+    LIMIT 100
+");
+
+$manualMsg = '';
+if (isset($_POST['run_notify'])) {
+    ob_start();
+    include __DIR__ . '/../notify_absent.php';
+    ob_end_clean();
+    $manualMsg = 'Absent notifications sent for today.';
 }
 
-$data = $conn->query("SELECT * FROM notifications ORDER BY id DESC");
-$total_sent = $data ? $data->num_rows : 0;
+// ── Helpers ────────────────────────────────────────────────────────────
+function getInitials($name) {
+    $parts = array_filter(explode(' ', trim($name)));
+    $initials = '';
+    foreach (array_slice($parts, 0, 2) as $part)
+        $initials .= strtoupper(mb_substr($part, 0, 1));
+    return $initials ?: '?';
+}
+
+function avatarColor($name) {
+    $colors = [
+        ['#dbeafe','#1d4ed8'],
+        ['#dcfce7','#15803d'],
+        ['#ede9fe','#6d28d9'],
+        ['#fef3c7','#92400e'],
+        ['#fee2e2','#b91c1c'],
+        ['#e0f2fe','#0369a1'],
+        ['#fce7f3','#9d174d'],
+        ['#f0fdf4','#166534'],
+    ];
+    return $colors[abs(crc32($name)) % count($colors)];
+}
 ?>
 
 <style>
+.notif-page { display: flex; flex-direction: column; gap: 24px; }
+
 .section-title {
-    font-size: 20px; font-weight: 600;
-    color: #1e293b; margin-bottom: 20px;
-    display: flex; align-items: center; gap: 8px;
+    font-size: 20px; font-weight: 700;
+    color: #0f1923; display: flex; align-items: center; gap: 8px;
+    margin-bottom: 4px;
 }
+.section-sub { font-size: 13px; color: #64748b; margin-bottom: 20px; }
 
-/* ALERT MESSAGES */
-.alert {
-    display: flex; align-items: center; gap: 10px;
-    padding: 13px 16px; border-radius: 10px;
-    font-size: 14px; font-weight: 500; margin-bottom: 20px;
-}
-
-.alert.success { background: #dcfce7; color: #15803d; border-left: 4px solid #22c55e; }
-.alert.error   { background: #fee2e2; color: #b91c1c; border-left: 4px solid #ef4444; }
-
-/* COMPOSE CARD */
-.compose-card {
-    background: #fff; border-radius: 14px;
-    padding: 24px; margin-bottom: 24px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-}
-
-.compose-card .card-header {
-    font-size: 15px; font-weight: 600;
-    color: #1e293b; margin-bottom: 16px;
-    display: flex; align-items: center; gap: 8px;
-}
-
-.compose-card textarea {
-    width: 100%; padding: 13px 14px;
-    border: 1px solid #e5e7eb; border-radius: 10px;
-    font-size: 14px; font-family: 'Poppins', sans-serif;
-    color: #374151; resize: none; min-height: 100px;
-    outline: none; transition: border-color 0.2s;
-    box-sizing: border-box;
-}
-
-.compose-card textarea:focus { border-color: #3b82f6; }
-.compose-card textarea::placeholder { color: #9ca3af; }
-
-.btn-send {
-    width: 100%; margin-top: 12px;
-    background: #3b82f6; color: white;
-    border: none; padding: 12px;
-    border-radius: 10px; font-size: 14px;
-    font-family: 'Poppins', sans-serif;
-    font-weight: 500; cursor: pointer;
-    transition: background 0.2s;
-}
-
-.btn-send:hover { background: #2563eb; }
-
-/* STATS ROW */
-.notif-stats {
+.stat-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 16px; margin-bottom: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 16px;
+}
+.stat-card {
+    background: #fff; border-radius: 14px; padding: 20px 22px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    display: flex; flex-direction: column; gap: 6px;
+    position: relative; overflow: hidden;
+}
+.stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%; border-radius: 14px 0 0 14px;
+}
+.stat-card.blue::before  { background: #3b82f6; }
+.stat-card.red::before   { background: #ef4444; }
+.stat-card.amber::before { background: #f59e0b; }
+.stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; }
+.stat-val   { font-size: 32px; font-weight: 800; line-height: 1; color: #0f1923; }
+.stat-card.blue  .stat-val { color: #3b82f6; }
+.stat-card.red   .stat-val { color: #ef4444; }
+.stat-card.amber .stat-val { color: #f59e0b; }
+
+.info-banner {
+    background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px;
+    padding: 16px 20px; display: flex; align-items: flex-start; gap: 12px;
+    font-size: 14px; color: #1e40af;
+}
+.info-banner .icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.info-banner strong { display: block; margin-bottom: 4px; font-size: 14px; }
+.info-banner p { margin: 0; color: #3b82f6; font-size: 13px; line-height: 1.5; }
+
+.trigger-card {
+    background: #fff; border-radius: 14px; padding: 20px 22px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+}
+.trigger-info strong { display: block; font-size: 14px; color: #0f1923; margin-bottom: 3px; }
+.trigger-info span   { font-size: 13px; color: #64748b; }
+.btn-trigger {
+    background: #16a34a; color: #fff; border: none; padding: 10px 22px;
+    border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; gap: 8px; transition: background 0.2s; white-space: nowrap;
+}
+.btn-trigger:hover { background: #15803d; }
+.alert-success {
+    background: #dcfce7; color: #15803d;
+    border-left: 4px solid #22c55e;
+    border-radius: 10px; padding: 12px 16px;
+    font-size: 14px; font-weight: 500;
 }
 
-.notif-stat {
-    background: #fff; border-radius: 14px;
-    padding: 18px 20px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+.log-card { background: #fff; border-radius: 14px; padding: 22px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+.log-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px; flex-wrap: wrap; gap: 10px;
 }
-
-.notif-stat h4 { font-size: 12px; color: #6b7280; font-weight: 500; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-.notif-stat .ns-val { font-size: 28px; font-weight: 700; color: #1e293b; }
-.notif-stat.blue .ns-val { color: #3b82f6; }
-
-/* TABLE CARD */
-.table-card {
-    background: #fff; border-radius: 14px;
-    padding: 22px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-}
-
-.table-card .card-header {
-    font-size: 15px; font-weight: 600;
-    color: #1e293b; margin-bottom: 16px;
-    display: flex; align-items: center; gap: 8px;
-}
+.log-title { font-size: 15px; font-weight: 700; color: #0f1923; display: flex; align-items: center; gap: 8px; }
 
 .data-table { width: 100%; border-collapse: collapse; }
-
 .data-table th {
-    background: #f8fafc; padding: 11px 14px;
-    font-size: 12px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.5px;
-    color: #64748b; text-align: left;
+    background: #f8fafc; padding: 11px 14px; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; text-align: left;
 }
-
 .data-table td {
-    padding: 13px 14px; font-size: 14px;
-    color: #374151; border-bottom: 1px solid #f1f5f9;
+    padding: 11px 14px; font-size: 14px; color: #374151;
+    border-bottom: 1px solid #f1f5f9; vertical-align: middle;
 }
-
 .data-table tr:last-child td { border-bottom: none; }
 .data-table tr:hover td { background: #f8fafc; }
 
-.msg-text {
-    max-width: 500px; white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis;
+/* Avatar + name */
+.student-cell { display: flex; align-items: center; gap: 10px; }
+.avatar-circle {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+    font-family: 'Sora', sans-serif; letter-spacing: 0.3px;
 }
+.student-cell-name { font-weight: 600; font-size: 13.5px; color: #1e293b; }
 
-.date-text { color: #64748b; font-size: 13px; white-space: nowrap; }
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 99px; font-size: 12px; font-weight: 700; }
+.badge.absent { background: #fee2e2; color: #dc2626; }
+.badge.late   { background: #fef3c7; color: #d97706; }
+
+.email-pill { font-size: 12px; color: #3b82f6; background: #eff6ff; padding: 3px 9px; border-radius: 6px; font-family: monospace; }
+.date-cell  { color: #64748b; font-size: 13px; white-space: nowrap; }
+.notif-sent-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #16a34a; font-weight: 600; }
+
+.empty-state { text-align: center; padding: 40px 20px; color: #94a3b8; font-size: 14px; }
+.empty-state .empty-icon { font-size: 36px; margin-bottom: 8px; }
 </style>
 
-<div class="section-title">🔔 Notifications</div>
+<div class="notif-page">
 
-<!-- ALERTS -->
-<?php if($success): ?>
-    <div class="alert success">✅ <?= htmlspecialchars($success) ?></div>
-<?php endif; ?>
-<?php if($error): ?>
-    <div class="alert error">⚠️ <?= htmlspecialchars($error) ?></div>
-<?php endif; ?>
-
-<!-- STATS -->
-<div class="notif-stats">
-    <div class="notif-stat blue">
-        <h4>Total Sent</h4>
-        <div class="ns-val"><?= $total_sent ?></div>
+    <div>
+        <div class="section-title">🔔 Notifications</div>
+        <div class="section-sub">All email alerts are sent automatically by the system — no manual input needed.</div>
     </div>
-</div>
 
-<!-- COMPOSE -->
-<div class="compose-card">
-    <div class="card-header">📩 Send Message</div>
-    <form method="POST">
-        <textarea name="message" placeholder="Type your message here..." required></textarea>
-        <button class="btn-send" name="send">Send Notification</button>
-    </form>
-</div>
+    <div class="stat-row">
+        <div class="stat-card blue">
+            <div class="stat-label">Total Emails Sent</div>
+            <div class="stat-val"><?= number_format($totalSent) ?></div>
+        </div>
+        <div class="stat-card red">
+            <div class="stat-label">Absent Today</div>
+            <div class="stat-val"><?= $counts['absent'] ?></div>
+        </div>
+        <div class="stat-card amber">
+            <div class="stat-label">Late Today</div>
+            <div class="stat-val"><?= $counts['late'] ?></div>
+        </div>
+    </div>
 
-<!-- SENT TABLE -->
-<div class="table-card">
-    <div class="card-header">📢 Sent Notifications</div>
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Message</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php
-        // Re-fetch since num_rows consumed the pointer
-        $data = $conn->query("SELECT * FROM notifications ORDER BY id DESC");
-        if($data && $data->num_rows > 0):
-            while($n = $data->fetch_assoc()):
-        ?>
-            <tr>
-                <td><span class="msg-text"><?= htmlspecialchars($n['message']) ?></span></td>
-                <td><span class="date-text"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span></td>
-            </tr>
-        <?php
-            endwhile;
-        else:
-        ?>
-            <tr>
-                <td colspan="2" style="text-align:center;color:#9ca3af;padding:24px;">No notifications sent yet</td>
-            </tr>
-        <?php endif; ?>
-        </tbody>
-    </table>
+    <div class="info-banner">
+        <div class="icon">ℹ️</div>
+        <div>
+            <strong>How automatic notifications work</strong>
+            <p>
+                ✅ <strong>Present / Late</strong> — Parent is emailed instantly when the student scans their QR at the gate.<br>
+                ❌ <strong>Absent</strong> — A scheduled task runs at <strong>9:01 AM</strong> daily and emails all parents whose child has no scan record.
+                You can also trigger it manually below.
+            </p>
+        </div>
+    </div>
+
+    <div class="trigger-card">
+        <div class="trigger-info">
+            <strong>📤 Send Today's Absent Notifications Now</strong>
+            <span>Manually run the absent check for <?= date('F j, Y') ?> and email all affected parents.</span>
+        </div>
+        <form method="POST">
+            <button class="btn-trigger" name="run_notify">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+                Send Now
+            </button>
+        </form>
+    </div>
+
+    <?php if ($manualMsg): ?>
+        <div class="alert-success">✅ <?= htmlspecialchars($manualMsg) ?></div>
+    <?php endif; ?>
+
+    <div class="log-card">
+        <div class="log-header">
+            <div class="log-title">
+                📋 Email Notification Log
+                <span style="font-size:12px;font-weight:500;color:#94a3b8;">(latest 100)</span>
+            </div>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Status</th>
+                    <th>Parent Email</th>
+                    <th>Date</th>
+                    <th>Time Scanned</th>
+                    <th>Email Sent</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php if ($log && $log->num_rows > 0): ?>
+                <?php while ($n = $log->fetch_assoc()):
+                    $initials = getInitials($n['student_name']);
+                    [$bgColor, $textColor] = avatarColor($n['student_name']);
+                ?>
+                <tr>
+                    <td>
+                        <div class="student-cell">
+                            <div class="avatar-circle" style="background:<?= $bgColor ?>;color:<?= $textColor ?>;">
+                                <?= htmlspecialchars($initials) ?>
+                            </div>
+                            <span class="student-cell-name"><?= htmlspecialchars($n['student_name']) ?></span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge <?= $n['status'] ?>">
+                            <?= $n['status'] === 'absent' ? '❌' : '⚠️' ?>
+                            <?= ucfirst($n['status']) ?>
+                        </span>
+                    </td>
+                    <td><span class="email-pill"><?= htmlspecialchars($n['parent_email']) ?></span></td>
+                    <td class="date-cell"><?= date('M d, Y', strtotime($n['scan_date'])) ?></td>
+                    <td class="date-cell">
+                        <?= $n['status'] === 'absent' ? '—' : date('h:i A', strtotime($n['scan_time'])) ?>
+                    </td>
+                    <td><span class="notif-sent-badge">✅ Sent</span></td>
+                </tr>
+                <?php endwhile; ?>
+            <?php else: ?>
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            No notifications sent yet. They will appear here automatically once students are marked absent or late.
+                        </div>
+                    </td>
+                </tr>
+            <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+
 </div>

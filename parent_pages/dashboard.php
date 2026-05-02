@@ -3,189 +3,302 @@ include 'includes/db.php';
 
 $parent_email = $_SESSION['email'] ?? '';
 
-$children_result = $conn->query("SELECT id, name FROM user WHERE parent_email='$parent_email'");
+// Get children
+$stmt = $conn->prepare("SELECT id, fullname FROM users WHERE parent_email = ?");
+$stmt->bind_param("s", $parent_email);
+$stmt->execute();
+$childRes = $stmt->get_result();
 $children_data = []; $child_ids = [];
-while($row = $children_result->fetch_assoc()){
+while ($row = $childRes->fetch_assoc()) {
     $children_data[] = $row;
     $child_ids[] = $row['id'];
 }
-
 $total_children = count($children_data);
-$ids = !empty($child_ids) ? implode(',', $child_ids) : "0";
+$ids = !empty($child_ids) ? implode(',', $child_ids) : '0';
 
-$present_today = 0; $absent_today = 0;
-foreach($children_data as $child){
-    $att = $conn->query("SELECT status FROM attendance WHERE student_id='{$child['id']}' AND DATE(created_at)=CURDATE()");
-    if($att && $att->num_rows > 0){
+// Today's stats using scan_date
+$today = date('Y-m-d');
+$present_today = 0; $late_today = 0; $absent_today = 0; $no_record = 0;
+$child_statuses = [];
+
+foreach ($children_data as $child) {
+    $att = $conn->query("
+        SELECT status FROM attendance
+        WHERE student_id = '{$child['id']}' AND scan_date = '$today'
+        LIMIT 1
+    ");
+    if ($att && $att->num_rows > 0) {
         $r = $att->fetch_assoc();
-        if($r['status'] == 'present') $present_today++;
+        $child_statuses[$child['id']] = $r['status'];
+        if ($r['status'] === 'present') $present_today++;
+        elseif ($r['status'] === 'late') $late_today++;
         else $absent_today++;
+    } else {
+        $child_statuses[$child['id']] = 'no-record';
+        $no_record++;
     }
 }
 
-$notif = ($ids !== "0")
-    ? $conn->query("SELECT COUNT(*) as total FROM notifications WHERE student_id IN ($ids)")->fetch_assoc()['total']
-    : 0;
+// All-time attendance stats
+$allStats = $conn->query("
+    SELECT status, COUNT(*) as cnt
+    FROM attendance
+    WHERE student_id IN ($ids)
+    GROUP BY status
+");
+$allCounts = ['present' => 0, 'late' => 0, 'absent' => 0];
+while ($s = $allStats->fetch_assoc()) {
+    if (isset($allCounts[$s['status']])) $allCounts[$s['status']] = (int)$s['cnt'];
+}
+$allTotal = array_sum($allCounts);
+$allRate  = $allTotal > 0 ? round((($allCounts['present'] + $allCounts['late']) / $allTotal) * 100) : 0;
+
+// Recent 5 records
+$recent = $conn->query("
+    SELECT a.status, a.scan_date, a.scan_time, u.fullname
+    FROM attendance a
+    JOIN users u ON u.id = a.student_id
+    WHERE a.student_id IN ($ids)
+    ORDER BY a.scan_date DESC, a.scan_time DESC
+    LIMIT 5
+");
 ?>
 
 <style>
-.section-title { font-size: 20px; font-weight: 600; color: #1e293b; margin-bottom: 20px; }
+.pd-page { display: flex; flex-direction: column; gap: 22px; }
+
+.section-title {
+    font-size: 20px; font-weight: 700; color: #0f1923;
+    display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+}
+.section-sub { font-size: 13px; color: #64748b; }
+
+/* TODAY BANNER */
+.today-banner {
+    background: #fff; border-radius: 14px;
+    padding: 16px 22px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+}
+.today-label { font-size: 13px; font-weight: 600; color: #64748b; }
+.today-date  { font-size: 15px; font-weight: 700; color: #0f1923; margin-top: 2px; }
 
 /* STAT CARDS */
-.stat-cards {
+.stat-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px; margin-bottom: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
 }
 
 .stat-card {
     background: #fff; border-radius: 14px;
-    padding: 22px 24px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    padding: 18px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    position: relative; overflow: hidden;
 }
 
-.stat-card h4 { font-size: 13px; color: #6b7280; font-weight: 500; margin-bottom: 10px; }
-.stat-card .stat-value { font-size: 32px; font-weight: 700; line-height: 1; }
-.stat-card.green .stat-value { color: #16a34a; }
-.stat-card.red   .stat-value { color: #dc2626; }
-.stat-card.blue  .stat-value { color: #2563eb; }
-.stat-card.amber .stat-value { color: #d97706; }
+.stat-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; width: 4px; height: 100%;
+    border-radius: 14px 0 0 14px;
+}
+.stat-card.slate::before  { background: #64748b; }
+.stat-card.green::before  { background: #16a34a; }
+.stat-card.amber::before  { background: #f59e0b; }
+.stat-card.red::before    { background: #ef4444; }
+.stat-card.blue::before   { background: #2563eb; }
 
-/* CHARTS GRID */
-.charts-grid {
+.stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; color: #94a3b8; margin-bottom: 6px; }
+.stat-val   { font-size: 30px; font-weight: 800; line-height: 1; color: #0f1923; }
+.stat-card.green .stat-val { color: #16a34a; }
+.stat-card.amber .stat-val { color: #f59e0b; }
+.stat-card.red   .stat-val { color: #ef4444; }
+.stat-card.blue  .stat-val { color: #2563eb; }
+
+/* CHILDREN CARDS */
+.children-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px; margin-bottom: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
 }
 
-.chart-card {
+.child-card {
     background: #fff; border-radius: 14px;
-    padding: 22px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    padding: 18px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    display: flex; align-items: center; gap: 14px;
 }
 
-.chart-card h3 { font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 16px; }
+.child-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; color: #fff; flex-shrink: 0;
+}
 
-/* TABLE CARD */
-.table-card {
+.child-avatar.present   { background: #16a34a; }
+.child-avatar.late      { background: #f59e0b; }
+.child-avatar.absent    { background: #ef4444; }
+.child-avatar.no-record { background: #94a3b8; }
+
+.child-name  { font-size: 14px; font-weight: 700; color: #0f1923; margin-bottom: 4px; }
+.child-label { font-size: 12px; color: #64748b; }
+
+.spill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 99px;
+    font-size: 11px; font-weight: 700; margin-top: 5px;
+}
+.spill.present   { background: #dcfce7; color: #16a34a; }
+.spill.late      { background: #fef3c7; color: #d97706; }
+.spill.absent    { background: #fee2e2; color: #dc2626; }
+.spill.no-record { background: #f1f5f9; color: #64748b; }
+
+/* OVERALL RATE CARD */
+.rate-card {
     background: #fff; border-radius: 14px;
-    padding: 22px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    padding: 20px 22px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
 }
+.rate-card-title { font-size: 14px; font-weight: 700; color: #0f1923; margin-bottom: 14px; }
+.rate-bar-wrap { background: #e5e7eb; border-radius: 99px; height: 10px; overflow: hidden; margin-bottom: 10px; }
+.rate-bar-fill { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+.rate-bar-fill.high   { background: linear-gradient(90deg, #22c55e, #16a34a); }
+.rate-bar-fill.mid    { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+.rate-bar-fill.low    { background: linear-gradient(90deg, #f87171, #ef4444); }
+.rate-dots { display: flex; gap: 16px; flex-wrap: wrap; }
+.rate-dot  { font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 5px; }
+.dot-bullet { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-.table-card h3 { font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 16px; }
-
+/* RECENT TABLE */
+.table-card { background: #fff; border-radius: 14px; padding: 20px 22px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+.table-card-title { font-size: 14px; font-weight: 700; color: #0f1923; margin-bottom: 14px; }
 .data-table { width: 100%; border-collapse: collapse; }
-
-.data-table th {
-    background: #f8fafc; padding: 11px 14px;
-    font-size: 12px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.5px;
-    color: #64748b; text-align: left;
-}
-
-.data-table td {
-    padding: 12px 14px; font-size: 14px;
-    color: #374151; border-bottom: 1px solid #f1f5f9;
-}
-
+.data-table th { background: #f8fafc; padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; text-align: left; }
+.data-table td { padding: 12px 14px; font-size: 13px; color: #374151; border-bottom: 1px solid #f1f5f9; }
 .data-table tr:last-child td { border-bottom: none; }
-
-.badge { display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 600; }
-.badge.present  { background: #dcfce7; color: #16a34a; }
-.badge.absent   { background: #fee2e2; color: #dc2626; }
-.badge.no-record { background: #f1f5f9; color: #64748b; }
+.data-table tr:hover td { background: #f8fafc; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+.badge.present { background: #dcfce7; color: #16a34a; }
+.badge.late    { background: #fef3c7; color: #d97706; }
+.badge.absent  { background: #fee2e2; color: #dc2626; }
 </style>
 
-<div class="section-title">📊 Parent Dashboard</div>
+<div class="pd-page">
 
-<!-- STAT CARDS -->
-<div class="stat-cards">
-    <div class="stat-card">
-        <h4>👨‍👩‍👧 Children Enrolled</h4>
-        <div class="stat-value"><?= $total_children ?></div>
+    <div>
+        <div class="section-title">📊 Parent Dashboard</div>
+        <div class="section-sub">Overview of your child's attendance and today's status.</div>
     </div>
-    <div class="stat-card green">
-        <h4>Present Today</h4>
-        <div class="stat-value"><?= $present_today ?></div>
-    </div>
-    <div class="stat-card red">
-        <h4>Absent Today</h4>
-        <div class="stat-value"><?= $absent_today ?></div>
-    </div>
-    <div class="stat-card amber">
-        <h4>Notifications</h4>
-        <div class="stat-value"><?= $notif ?></div>
-    </div>
-</div>
 
-<!-- CHARTS -->
-<div class="charts-grid">
-    <div class="chart-card">
-        <h3>📈 Attendance Overview (Today)</h3>
-        <canvas id="attendanceChart" style="max-height:220px;"></canvas>
+    <!-- Today banner -->
+    <div class="today-banner">
+        <div>
+            <div class="today-label">Today's Date</div>
+            <div class="today-date"><?= date('l, F j, Y') ?></div>
+        </div>
+        <div style="font-size:13px;color:#64748b;">
+            <?= $total_children ?> child<?= $total_children !== 1 ? 'ren' : '' ?> linked to your account
+        </div>
     </div>
-    <div class="chart-card">
-        <h3>📊 Children Status</h3>
-        <canvas id="childrenChart" style="max-height:220px;"></canvas>
-    </div>
-</div>
 
-<!-- CHILDREN TABLE -->
-<div class="table-card">
-    <h3>👨‍👩‍👧 My Children — Today's Status</h3>
-    <table class="data-table">
-        <thead>
-            <tr><th>Name</th><th>Status</th></tr>
-        </thead>
-        <tbody>
-        <?php foreach($children_data as $child):
-            $att = $conn->query("SELECT status FROM attendance WHERE student_id='{$child['id']}' AND DATE(created_at)=CURDATE()");
-            $status = "no-record"; $label = "No Record";
-            if($att && $att->num_rows > 0){
-                $r = $att->fetch_assoc();
-                $status = $r['status'];
-                $label  = ucfirst($status);
-            }
+    <!-- Today's stat cards -->
+    <div class="stat-row">
+        <div class="stat-card slate">
+            <div class="stat-label">Children</div>
+            <div class="stat-val"><?= $total_children ?></div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-label">Present Today</div>
+            <div class="stat-val"><?= $present_today ?></div>
+        </div>
+        <div class="stat-card amber">
+            <div class="stat-label">Late Today</div>
+            <div class="stat-val"><?= $late_today ?></div>
+        </div>
+        <div class="stat-card red">
+            <div class="stat-label">Absent Today</div>
+            <div class="stat-val"><?= $absent_today ?></div>
+        </div>
+        <div class="stat-card blue">
+            <div class="stat-label">Overall Rate</div>
+            <div class="stat-val"><?= $allRate ?>%</div>
+        </div>
+    </div>
+
+    <!-- Children today status -->
+    <?php if (!empty($children_data)): ?>
+    <div>
+        <div style="font-size:14px;font-weight:700;color:#0f1923;margin-bottom:12px;">👨‍👩‍👧 Today's Status</div>
+        <div class="children-grid">
+            <?php foreach ($children_data as $child):
+                $st = $child_statuses[$child['id']] ?? 'no-record';
+                $icons = ['present' => '✅', 'late' => '⚠️', 'absent' => '❌', 'no-record' => '—'];
+                $labels = ['present' => 'Present', 'late' => 'Late', 'absent' => 'Absent', 'no-record' => 'No scan yet'];
+                $initial = strtoupper(substr($child['fullname'], 0, 1));
+            ?>
+            <div class="child-card">
+                <div class="child-avatar <?= $st ?>"><?= $initial ?></div>
+                <div>
+                    <div class="child-name"><?= htmlspecialchars($child['fullname']) ?></div>
+                    <div class="child-label">Student</div>
+                    <span class="spill <?= $st ?>"><?= $icons[$st] ?> <?= $labels[$st] ?></span>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Overall attendance rate -->
+    <div class="rate-card">
+        <div class="rate-card-title">📈 Overall Attendance Rate (All Time)</div>
+        <?php
+            $barClass = $allRate >= 90 ? 'high' : ($allRate >= 75 ? 'mid' : 'low');
         ?>
-        <tr>
-            <td><?= htmlspecialchars($child['name']) ?></td>
-            <td><span class="badge <?= $status ?>"><?= $label ?></span></td>
-        </tr>
-        <?php endforeach; ?>
-        <?php if(empty($children_data)): ?>
-            <tr><td colspan="2" style="text-align:center;color:#9ca3af;padding:20px;">No children linked to your account</td></tr>
-        <?php endif; ?>
-        </tbody>
-    </table>
+        <div class="rate-bar-wrap">
+            <div class="rate-bar-fill <?= $barClass ?>" style="width:<?= $allRate ?>%;"></div>
+        </div>
+        <div class="rate-dots">
+            <span class="rate-dot"><span class="dot-bullet" style="background:#16a34a;"></span><?= $allCounts['present'] ?> Present</span>
+            <span class="rate-dot"><span class="dot-bullet" style="background:#f59e0b;"></span><?= $allCounts['late'] ?> Late</span>
+            <span class="rate-dot"><span class="dot-bullet" style="background:#ef4444;"></span><?= $allCounts['absent'] ?> Absent</span>
+            <span class="rate-dot"><span class="dot-bullet" style="background:#94a3b8;"></span><?= $allTotal ?> Total</span>
+        </div>
+    </div>
+
+    <!-- Recent records -->
+    <div class="table-card">
+        <div class="table-card-title">🕐 Recent Attendance</div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php if ($recent && $recent->num_rows > 0): ?>
+                <?php while ($r = $recent->fetch_assoc()): ?>
+                <tr>
+                    <td><strong><?= htmlspecialchars($r['fullname']) ?></strong></td>
+                    <td>
+                        <span class="badge <?= $r['status'] ?>">
+                            <?= $r['status'] === 'present' ? '✅' : ($r['status'] === 'late' ? '⚠️' : '❌') ?>
+                            <?= ucfirst($r['status']) ?>
+                        </span>
+                    </td>
+                    <td><?= date('M d, Y', strtotime($r['scan_date'])) ?></td>
+                    <td><?= $r['status'] === 'absent' ? '—' : date('h:i A', strtotime($r['scan_time'])) ?></td>
+                </tr>
+                <?php endwhile; ?>
+            <?php else: ?>
+                <tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:24px;">No records yet</td></tr>
+            <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-const chartOpts = {
-    responsive: true,
-    plugins: { legend: { position: 'bottom' } }
-};
-
-new Chart(document.getElementById('attendanceChart'), {
-    type: 'doughnut',
-    data: {
-        labels: ['Present', 'Absent'],
-        datasets: [{ data: [<?= $present_today ?>, <?= $absent_today ?>], backgroundColor: ['#86efac','#fca5a5'], borderWidth: 0 }]
-    },
-    options: chartOpts
-});
-
-new Chart(document.getElementById('childrenChart'), {
-    type: 'bar',
-    data: {
-        labels: ['Present', 'Absent', 'No Record'],
-        datasets: [{ data: [<?= $present_today ?>, <?= $absent_today ?>, <?= max(0, $total_children - $present_today - $absent_today) ?>], backgroundColor: ['#86efac','#fca5a5','#e2e8f0'], borderRadius: 8 }]
-    },
-    options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: '#f1f5f9' } } }
-    }
-});
-</script>

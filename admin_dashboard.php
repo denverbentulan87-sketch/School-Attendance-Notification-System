@@ -6,7 +6,7 @@ if(!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin'){
     exit();
 }
 
-$name = $_SESSION['name'];
+$name = $_SESSION['fullname'] ?? $_SESSION['name'] ?? 'Admin';  // ← handles both
 $role = $_SESSION['role'];
 $page = $_GET['page'] ?? 'dashboard';
 

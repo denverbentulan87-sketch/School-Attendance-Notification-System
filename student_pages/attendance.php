@@ -1,19 +1,19 @@
 <?php
 include 'includes/db.php';
-$user_id = $_SESSION['user_id'];
+$student_id = $_SESSION['user_id'];
 
 $filter = $_GET['filter'] ?? 'all';
 $search = $_GET['search'] ?? '';
 
-$where = "WHERE student_id='$user_id'";
+$where = "WHERE student_id='$student_id'";
 if($filter == 'present')      $where .= " AND status='present'";
 elseif($filter == 'absent')   $where .= " AND status='absent'";
 if(!empty($search))           $where .= " AND DATE(date_added)='$search'";
 
 $records = $conn->query("SELECT date_added, status FROM attendance $where ORDER BY date_added DESC");
 
-$present = $conn->query("SELECT COUNT(*) as total FROM attendance WHERE student_id='$user_id' AND status='present'")->fetch_assoc()['total'];
-$absent  = $conn->query("SELECT COUNT(*) as total FROM attendance WHERE student_id='$user_id' AND status='absent'")->fetch_assoc()['total'];
+$present = $conn->query("SELECT COUNT(*) as total FROM attendance WHERE student_id='$student_id' AND status='present'")->fetch_assoc()['total'];
+$absent  = $conn->query("SELECT COUNT(*) as total FROM attendance WHERE student_id='$student_id' AND status='absent'")->fetch_assoc()['total'];
 $total   = $present + $absent;
 $rate    = $total > 0 ? ($present / $total) * 100 : 0;
 
