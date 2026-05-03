@@ -1,50 +1,101 @@
 <?php
 if (session_status() == PHP_SESSION_NONE) session_start();
 include 'includes/db.php';
+include 'includes/mailer.php';
 
-// ── Stats ──────────────────────────────────────────────────────────────
+date_default_timezone_set('Asia/Manila');
+
 $today = date('Y-m-d');
 
-$r = $conn->query("SELECT status, COUNT(*) as cnt FROM attendance WHERE scan_date = '$today' AND status IN ('absent','late') GROUP BY status");
+// ── Stats ──────────────────────────────────────────────────────────────
+$r = $conn->query("
+    SELECT status, COUNT(*) as cnt
+    FROM attendance
+    WHERE scan_date = '$today' AND status IN ('absent','late')
+    GROUP BY status
+");
 $counts = ['absent' => 0, 'late' => 0];
 while ($row = $r->fetch_assoc()) $counts[$row['status']] = (int)$row['cnt'];
 
-$totalRow = $conn->query("
-    SELECT COUNT(*) as total
-    FROM attendance a
-    JOIN users u ON u.id = a.student_id
-    WHERE a.status IN ('absent','late')
-      AND u.parent_email IS NOT NULL AND u.parent_email != ''
-")->fetch_assoc();
+// Total emails sent = total rows in notifications table
+$totalRow  = $conn->query("SELECT COUNT(*) as total FROM notifications")->fetch_assoc();
 $totalSent = $totalRow['total'] ?? 0;
 
-// ── Recent notification log (last 100) ──────────────────────────────────
+// ── Manual "Send Now" — emails absent students for today ───────────────
+$manualMsg = '';
+if (isset($_POST['run_notify'])) {
+
+    // Find all students who have no attendance record today (absent)
+    $absentQ = $conn->query("
+        SELECT u.id, u.fullname, u.parent_email
+        FROM users u
+        WHERE u.role = 'student'
+          AND (u.parent_email IS NOT NULL AND u.parent_email != '')
+          AND u.id NOT IN (
+              SELECT student_id FROM attendance WHERE scan_date = '$today'
+          )
+    ");
+
+    $sentCount = 0;
+    $now_full  = date('Y-m-d H:i:s');
+
+    while ($s = $absentQ->fetch_assoc()) {
+
+        // Avoid duplicate notification for same student same day
+        $dupCheck = $conn->prepare("
+            SELECT id FROM notifications
+            WHERE student_id = ? AND DATE(created_at) = ? AND message LIKE '%absent%'
+            LIMIT 1
+        ");
+        $dupCheck->bind_param("is", $s['id'], $today);
+        $dupCheck->execute();
+        $dupCheck->store_result();
+        if ($dupCheck->num_rows > 0) { $dupCheck->close(); continue; }
+        $dupCheck->close();
+
+        // Send absent email using the dedicated absent function
+        send_absent_notification(
+            $s['parent_email'],
+            $s['fullname']
+        );
+
+        // Save to notifications table
+        $msg      = "Your child {$s['fullname']} was marked ABSENT on " . date('F j, Y') . ".";
+        $ins      = $conn->prepare("
+            INSERT INTO notifications (student_id, message, created_at, sender, is_read)
+            VALUES (?, ?, ?, 'system', 0)
+        ");
+        $ins->bind_param("iss", $s['id'], $msg, $now_full);
+        $ins->execute();
+        $ins->close();
+
+        $sentCount++;
+    }
+
+    $manualMsg = $sentCount > 0
+        ? "Absent notifications sent to $sentCount parent(s) for today."
+        : "No new absent notifications to send for today (all already sent or no absent students).";
+}
+
+// ── Notification log from notifications table (last 100) ───────────────
 $log = $conn->query("
     SELECT
+        n.id,
+        n.message,
+        n.created_at,
+        n.sender,
+        n.is_read,
         u.fullname   AS student_name,
-        u.parent_email,
-        a.status,
-        a.scan_date,
-        a.scan_time
-    FROM attendance a
-    JOIN users u ON u.id = a.student_id
-    WHERE a.status IN ('absent','late')
-      AND u.parent_email IS NOT NULL AND u.parent_email != ''
-    ORDER BY a.scan_date DESC, a.scan_time DESC
+        u.parent_email
+    FROM notifications n
+    JOIN users u ON u.id = n.student_id
+    ORDER BY n.created_at DESC
     LIMIT 100
 ");
 
-$manualMsg = '';
-if (isset($_POST['run_notify'])) {
-    ob_start();
-    include __DIR__ . '/../notify_absent.php';
-    ob_end_clean();
-    $manualMsg = 'Absent notifications sent for today.';
-}
-
 // ── Helpers ────────────────────────────────────────────────────────────
 function getInitials($name) {
-    $parts = array_filter(explode(' ', trim($name)));
+    $parts    = array_filter(explode(' ', trim($name)));
     $initials = '';
     foreach (array_slice($parts, 0, 2) as $part)
         $initials .= strtoupper(mb_substr($part, 0, 1));
@@ -63,6 +114,15 @@ function avatarColor($name) {
         ['#f0fdf4','#166534'],
     ];
     return $colors[abs(crc32($name)) % count($colors)];
+}
+
+// Detect status from the notification message
+function detectStatus($message) {
+    $msg = strtolower($message);
+    if (str_contains($msg, 'absent'))  return 'absent';
+    if (str_contains($msg, 'late'))    return 'late';
+    if (str_contains($msg, 'present')) return 'present';
+    return 'unknown';
 }
 ?>
 
@@ -129,6 +189,12 @@ function avatarColor($name) {
     border-radius: 10px; padding: 12px 16px;
     font-size: 14px; font-weight: 500;
 }
+.alert-info {
+    background: #eff6ff; color: #1d4ed8;
+    border-left: 4px solid #3b82f6;
+    border-radius: 10px; padding: 12px 16px;
+    font-size: 14px; font-weight: 500;
+}
 
 .log-card { background: #fff; border-radius: 14px; padding: 22px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
 .log-header {
@@ -149,7 +215,6 @@ function avatarColor($name) {
 .data-table tr:last-child td { border-bottom: none; }
 .data-table tr:hover td { background: #f8fafc; }
 
-/* Avatar + name */
 .student-cell { display: flex; align-items: center; gap: 10px; }
 .avatar-circle {
     width: 34px; height: 34px; border-radius: 50%;
@@ -160,12 +225,16 @@ function avatarColor($name) {
 .student-cell-name { font-weight: 600; font-size: 13.5px; color: #1e293b; }
 
 .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 99px; font-size: 12px; font-weight: 700; }
-.badge.absent { background: #fee2e2; color: #dc2626; }
-.badge.late   { background: #fef3c7; color: #d97706; }
+.badge.absent  { background: #fee2e2; color: #dc2626; }
+.badge.late    { background: #fef3c7; color: #d97706; }
+.badge.present { background: #dcfce7; color: #16a34a; }
+.badge.unknown { background: #f1f5f9; color: #64748b; }
 
 .email-pill { font-size: 12px; color: #3b82f6; background: #eff6ff; padding: 3px 9px; border-radius: 6px; font-family: monospace; }
 .date-cell  { color: #64748b; font-size: 13px; white-space: nowrap; }
 .notif-sent-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #16a34a; font-weight: 600; }
+
+.msg-cell { font-size: 12.5px; color: #475569; max-width: 260px; line-height: 1.4; }
 
 .empty-state { text-align: center; padding: 40px 20px; color: #94a3b8; font-size: 14px; }
 .empty-state .empty-icon { font-size: 36px; margin-bottom: 8px; }
@@ -175,7 +244,7 @@ function avatarColor($name) {
 
     <div>
         <div class="section-title">🔔 Notifications</div>
-        <div class="section-sub">All email alerts are sent automatically by the system — no manual input needed.</div>
+        <div class="section-sub">Email alerts sent to parents for absent and late students.</div>
     </div>
 
     <div class="stat-row">
@@ -196,11 +265,11 @@ function avatarColor($name) {
     <div class="info-banner">
         <div class="icon">ℹ️</div>
         <div>
-            <strong>How automatic notifications work</strong>
+            <strong>How notifications work</strong>
             <p>
                 ✅ <strong>Present / Late</strong> — Parent is emailed instantly when the student scans their QR at the gate.<br>
-                ❌ <strong>Absent</strong> — A scheduled task runs at <strong>9:01 AM</strong> daily and emails all parents whose child has no scan record.
-                You can also trigger it manually below.
+                ❌ <strong>Absent</strong> — Click <strong>Send Now</strong> below to email all parents whose child has no scan record for today.
+                Duplicate notifications for the same student are automatically skipped.
             </p>
         </div>
     </div>
@@ -208,7 +277,7 @@ function avatarColor($name) {
     <div class="trigger-card">
         <div class="trigger-info">
             <strong>📤 Send Today's Absent Notifications Now</strong>
-            <span>Manually run the absent check for <?= date('F j, Y') ?> and email all affected parents.</span>
+            <span>Email all parents of students with no scan record for <?= date('F j, Y') ?>.</span>
         </div>
         <form method="POST">
             <button class="btn-trigger" name="run_notify">
@@ -221,7 +290,9 @@ function avatarColor($name) {
     </div>
 
     <?php if ($manualMsg): ?>
-        <div class="alert-success">✅ <?= htmlspecialchars($manualMsg) ?></div>
+        <div class="<?= str_contains($manualMsg, 'No new') ? 'alert-info' : 'alert-success' ?>">
+            <?= str_contains($manualMsg, 'No new') ? 'ℹ️' : '✅' ?> <?= htmlspecialchars($manualMsg) ?>
+        </div>
     <?php endif; ?>
 
     <div class="log-card">
@@ -238,16 +309,18 @@ function avatarColor($name) {
                     <th>Student</th>
                     <th>Status</th>
                     <th>Parent Email</th>
-                    <th>Date</th>
-                    <th>Time Scanned</th>
+                    <th>Message</th>
+                    <th>Date &amp; Time Sent</th>
                     <th>Email Sent</th>
                 </tr>
             </thead>
             <tbody>
             <?php if ($log && $log->num_rows > 0): ?>
                 <?php while ($n = $log->fetch_assoc()):
-                    $initials = getInitials($n['student_name']);
+                    $initials  = getInitials($n['student_name']);
                     [$bgColor, $textColor] = avatarColor($n['student_name']);
+                    $status    = detectStatus($n['message']);
+                    $statusIcon = $status === 'absent' ? '❌' : ($status === 'late' ? '⚠️' : '✅');
                 ?>
                 <tr>
                     <td>
@@ -259,15 +332,22 @@ function avatarColor($name) {
                         </div>
                     </td>
                     <td>
-                        <span class="badge <?= $n['status'] ?>">
-                            <?= $n['status'] === 'absent' ? '❌' : '⚠️' ?>
-                            <?= ucfirst($n['status']) ?>
+                        <span class="badge <?= $status ?>">
+                            <?= $statusIcon ?> <?= ucfirst($status) ?>
                         </span>
                     </td>
-                    <td><span class="email-pill"><?= htmlspecialchars($n['parent_email']) ?></span></td>
-                    <td class="date-cell"><?= date('M d, Y', strtotime($n['scan_date'])) ?></td>
+                    <td>
+                        <span class="email-pill">
+                            <?= htmlspecialchars($n['parent_email'] ?? '—') ?>
+                        </span>
+                    </td>
+                    <td class="msg-cell"><?= htmlspecialchars($n['message']) ?></td>
                     <td class="date-cell">
-                        <?= $n['status'] === 'absent' ? '—' : date('h:i A', strtotime($n['scan_time'])) ?>
+                        <?= date('M d, Y', strtotime($n['created_at'])) ?>
+                        <br>
+                        <span style="color:#94a3b8;font-size:12px;">
+                            <?= date('h:i A', strtotime($n['created_at'])) ?>
+                        </span>
                     </td>
                     <td><span class="notif-sent-badge">✅ Sent</span></td>
                 </tr>
@@ -277,7 +357,7 @@ function avatarColor($name) {
                     <td colspan="6">
                         <div class="empty-state">
                             <div class="empty-icon">📭</div>
-                            No notifications sent yet. They will appear here automatically once students are marked absent or late.
+                            No notifications sent yet. They will appear here once students are marked absent or late.
                         </div>
                     </td>
                 </tr>

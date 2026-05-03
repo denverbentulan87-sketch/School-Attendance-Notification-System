@@ -18,15 +18,18 @@ $selected_child  = $_GET['child']  ?? '';
 $selected_status = $_GET['status'] ?? '';
 $selected_date   = $_GET['date']   ?? '';
 
-// Build query using scan_date / scan_time (correct columns)
 $where = []; $params = []; $types = '';
 
 if ($selected_child) {
-    $where[] = 'a.student_id = ?';
-    $params[] = (int)$selected_child;
-    $types .= 'i';
+    // Validate that the selected child belongs to this parent
+    $valid = false;
+    foreach ($children as $c) { if ($c['id'] == $selected_child) { $valid = true; break; } }
+    if ($valid) {
+        $where[] = 'a.student_id = ?';
+        $params[] = (int)$selected_child;
+        $types .= 'i';
+    }
 } else {
-    // Restrict to this parent's children
     $child_ids = array_column($children, 'id');
     $ids_sql   = !empty($child_ids) ? implode(',', $child_ids) : '0';
     $where[]   = "a.student_id IN ($ids_sql)";
@@ -47,7 +50,7 @@ if ($selected_date) {
 $where_sql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
 $sql = "
-    SELECT a.status, a.scan_date, a.scan_time, u.fullname
+    SELECT a.status, a.scan_date, a.scan_time, u.fullname, u.id as student_id
     FROM attendance a
     JOIN users u ON u.id = a.student_id
     $where_sql
@@ -64,147 +67,215 @@ while ($row = $result->fetch_assoc()) {
     $data_rows[] = $row;
     if (isset($counts[$row['status']])) $counts[$row['status']]++;
 }
-$total      = count($data_rows);
-$attended   = $counts['present'] + $counts['late'];
-$rate       = $total > 0 ? round(($attended / $total) * 100) : 0;
-$barClass   = $rate >= 90 ? 'high' : ($rate >= 75 ? 'mid' : 'low');
+$total    = count($data_rows);
+$attended = $counts['present'] + $counts['late'];
+$rate     = $total > 0 ? round(($attended / $total) * 100) : 0;
+$barClass = $rate >= 90 ? 'high' : ($rate >= 75 ? 'mid' : 'low');
+
+// Month breakdown for filtered set
+$month_counts = [];
+foreach ($data_rows as $r) {
+    $mo = date('M Y', strtotime($r['scan_date']));
+    if (!isset($month_counts[$mo])) $month_counts[$mo] = ['present' => 0, 'late' => 0, 'absent' => 0];
+    if (isset($month_counts[$mo][$r['status']])) $month_counts[$mo][$r['status']]++;
+}
 ?>
 
 <style>
-.ah-page { display: flex; flex-direction: column; gap: 22px; }
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 
-.section-title {
-    font-size: 20px; font-weight: 700; color: #0f1923;
-    display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+.ah-wrap * { box-sizing: border-box; font-family: 'Sora', sans-serif; }
+
+.ah-wrap {
+    display: flex; flex-direction: column; gap: 24px;
+    background: #f0f4f8; min-height: 100%;
+    padding: 4px 0 32px;
 }
-.section-sub { font-size: 13px; color: #64748b; }
 
-/* FILTER BAR */
+/* HEADER */
+.ah-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.ah-header h1 { font-size: 22px; font-weight: 800; color: #0d1b2a; margin: 0 0 4px; letter-spacing: -0.5px; }
+.ah-header p  { font-size: 13px; color: #64748b; margin: 0; }
+
+/* FILTER CARD */
 .filter-card {
-    background: #fff; border-radius: 14px;
-    padding: 18px 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    background: #fff; border-radius: 16px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
 }
-
-.filter-card-title {
-    font-size: 13px; font-weight: 700;
-    color: #64748b; margin-bottom: 12px;
-    text-transform: uppercase; letter-spacing: 0.5px;
-}
-
-.filter-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.filter-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 14px; }
+.filter-row   { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
 .filter-row select,
 .filter-row input[type="date"] {
-    padding: 9px 13px; border: 1px solid #e5e7eb;
-    border-radius: 10px; font-size: 13px;
+    padding: 10px 14px; border: 1.5px solid #e5e7eb;
+    border-radius: 10px; font-size: 13px; font-family: 'Sora', sans-serif;
     color: #374151; background: #fff; outline: none;
     transition: border-color 0.2s; min-width: 160px;
 }
-
 .filter-row select:focus,
-.filter-row input:focus { border-color: #3b82f6; }
+.filter-row input:focus { border-color: #0d1b2a; }
 
-.btn-filter {
-    background: #0f1923; color: #fff; border: none;
-    padding: 9px 22px; border-radius: 10px;
-    font-size: 13px; font-weight: 600; cursor: pointer;
-    transition: background 0.2s; white-space: nowrap;
+.btn-apply {
+    background: #0d1b2a; color: #fff; border: none;
+    padding: 10px 24px; border-radius: 10px;
+    font-size: 13px; font-weight: 600; font-family: 'Sora', sans-serif;
+    cursor: pointer; transition: background 0.2s; white-space: nowrap;
 }
-.btn-filter:hover { background: #1e2d3d; }
+.btn-apply:hover { background: #1e2d3d; }
 
 .btn-reset {
     background: #f1f5f9; color: #64748b; border: none;
-    padding: 9px 16px; border-radius: 10px;
+    padding: 10px 16px; border-radius: 10px;
     font-size: 13px; font-weight: 500; cursor: pointer;
     text-decoration: none; display: inline-block;
-    transition: background 0.2s;
+    font-family: 'Sora', sans-serif; transition: background 0.2s;
 }
-.btn-reset:hover { background: #e2e8f0; }
+.btn-reset:hover { background: #e2e8f0; color: #374151; }
 
-/* STATS */
-.stat-row {
+/* STAT STRIP */
+.stat-strip {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
 }
 
-.stat-card {
+.stat-tile {
     background: #fff; border-radius: 14px;
-    padding: 18px 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    padding: 16px 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
     position: relative; overflow: hidden;
 }
-
-.stat-card::before {
+.stat-tile::after {
     content: ''; position: absolute;
-    top: 0; left: 0; width: 4px; height: 100%;
-    border-radius: 14px 0 0 14px;
+    bottom: 0; left: 0; right: 0;
+    height: 3px; border-radius: 0 0 14px 14px;
 }
-.stat-card.slate::before  { background: #64748b; }
-.stat-card.green::before  { background: #16a34a; }
-.stat-card.amber::before  { background: #f59e0b; }
-.stat-card.red::before    { background: #ef4444; }
-.stat-card.blue::before   { background: #2563eb; }
+.stat-tile.s-total::after   { background: #94a3b8; }
+.stat-tile.s-present::after { background: #16a34a; }
+.stat-tile.s-late::after    { background: #f59e0b; }
+.stat-tile.s-absent::after  { background: #ef4444; }
+.stat-tile.s-rate::after    { background: #2563eb; }
 
-.stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; color: #94a3b8; margin-bottom: 6px; }
-.stat-val   { font-size: 30px; font-weight: 800; line-height: 1; color: #0f1923; }
-.stat-card.green .stat-val { color: #16a34a; }
-.stat-card.amber .stat-val { color: #f59e0b; }
-.stat-card.red   .stat-val { color: #ef4444; }
-.stat-card.blue  .stat-val { color: #2563eb; }
+.stat-tile-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 6px; }
+.stat-tile-val   { font-size: 28px; font-weight: 800; line-height: 1; color: #0d1b2a; }
+.stat-tile.s-present .stat-tile-val { color: #16a34a; }
+.stat-tile.s-late    .stat-tile-val { color: #f59e0b; }
+.stat-tile.s-absent  .stat-tile-val { color: #ef4444; }
+.stat-tile.s-rate    .stat-tile-val { color: #2563eb; }
 
 /* RATE BAR */
-.rate-card { background: #fff; border-radius: 14px; padding: 18px 22px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
-.rate-label { font-size: 13px; font-weight: 700; color: #0f1923; margin-bottom: 10px; }
-.rate-bar-wrap { background: #e5e7eb; border-radius: 99px; height: 10px; overflow: hidden; margin-bottom: 10px; }
-.rate-bar-fill { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+.rate-card {
+    background: #fff; border-radius: 16px;
+    padding: 18px 22px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+.rate-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+.rate-head-label { font-size: 13px; font-weight: 700; color: #0d1b2a; }
+.rate-head-pct   { font-size: 22px; font-weight: 800; color: #0d1b2a; font-family: 'JetBrains Mono', monospace; }
+.rate-bar-track  { background: #e5e7eb; border-radius: 99px; height: 8px; overflow: hidden; margin-bottom: 10px; }
+.rate-bar-fill   { height: 100%; border-radius: 99px; transition: width 0.7s cubic-bezier(0.4,0,0.2,1); }
 .rate-bar-fill.high { background: linear-gradient(90deg, #22c55e, #16a34a); }
 .rate-bar-fill.mid  { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
 .rate-bar-fill.low  { background: linear-gradient(90deg, #f87171, #ef4444); }
-.rate-text { font-size: 13px; color: #64748b; }
-.rate-pct  { font-size: 20px; font-weight: 800; color: #0f1923; }
+.rate-subtext { font-size: 12px; color: #94a3b8; }
 
-/* TABLE */
-.table-card { background: #fff; border-radius: 14px; padding: 20px 22px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
-.table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
-.table-title  { font-size: 14px; font-weight: 700; color: #0f1923; }
-.table-count  { font-size: 12px; color: #94a3b8; }
+/* TABLE CARD */
+.table-card {
+    background: #fff; border-radius: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    overflow: hidden;
+}
 
-.data-table { width: 100%; border-collapse: collapse; }
-.data-table th { background: #f8fafc; padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; text-align: left; }
-.data-table td { padding: 12px 14px; font-size: 13px; color: #374151; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.table-top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 22px 0; flex-wrap: wrap; gap: 8px;
+}
+.table-top-title { font-size: 14px; font-weight: 700; color: #0d1b2a; }
+.table-top-count { font-size: 12px; color: #94a3b8; background: #f1f5f9; padding: 4px 12px; border-radius: 99px; }
+
+.data-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+.data-table th {
+    background: #f8fafc; padding: 10px 16px;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.7px;
+    color: #94a3b8; text-align: left;
+}
+.data-table td {
+    padding: 13px 16px; font-size: 13px; color: #374151;
+    border-bottom: 1px solid #f1f5f9; vertical-align: middle;
+}
 .data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td { background: #f8fafc; }
+.data-table tbody tr:hover td { background: #fafbfc; }
 
-.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+.num-col { color: #cbd5e1 !important; font-family: 'JetBrains Mono', monospace; font-size: 12px !important; }
+.time-col { font-family: 'JetBrains Mono', monospace; color: #64748b !important; font-size: 12px !important; }
+
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 700; }
 .badge.present { background: #dcfce7; color: #16a34a; }
 .badge.late    { background: #fef3c7; color: #d97706; }
 .badge.absent  { background: #fee2e2; color: #dc2626; }
 
-.empty-state { text-align: center; padding: 48px 20px; }
-.empty-state .ei { font-size: 40px; margin-bottom: 10px; }
-.empty-state p { font-size: 13px; color: #94a3b8; }
+/* EMPTY */
+.empty-state { padding: 56px 24px; text-align: center; }
+.empty-state .ei  { font-size: 44px; margin-bottom: 12px; }
+.empty-state p    { font-size: 13px; color: #94a3b8; margin: 0; }
+
+/* ACTIVE FILTER CHIPS */
+.filter-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.f-chip {
+    background: #f1f5f9; color: #374151;
+    padding: 5px 12px; border-radius: 99px;
+    font-size: 11px; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+}
+.f-chip span { color: #94a3b8; }
 </style>
 
-<div class="ah-page">
+<div class="ah-wrap">
 
-    <div>
-        <div class="section-title">📅 Attendance History</div>
-        <div class="section-sub">Full attendance log for your child. Filter by name, status, or date.</div>
+    <!-- Header -->
+    <div class="ah-header">
+        <div>
+            <h1>📅 Attendance History</h1>
+            <p>Complete attendance log for your child<?= $total_children !== 1 ? 'ren' : '' ?>. Filter by name, status, or date.</p>
+        </div>
     </div>
 
-    <!-- Filter -->
+    <!-- Active filters display -->
+    <?php if ($selected_child || $selected_status || $selected_date): ?>
+    <div class="filter-chips">
+        <div class="f-chip"><span>Filters:</span></div>
+        <?php if ($selected_child):
+            $cname = '';
+            foreach ($children as $c) { if ($c['id'] == $selected_child) { $cname = $c['fullname']; break; } }
+        ?>
+        <div class="f-chip">👤 <?= htmlspecialchars($cname) ?></div>
+        <?php endif; ?>
+        <?php if ($selected_status): ?>
+        <div class="f-chip">
+            <?= $selected_status === 'present' ? '✅' : ($selected_status === 'late' ? '⚠️' : '❌') ?>
+            <?= ucfirst($selected_status) ?>
+        </div>
+        <?php endif; ?>
+        <?php if ($selected_date): ?>
+        <div class="f-chip">📅 <?= date('M d, Y', strtotime($selected_date)) ?></div>
+        <?php endif; ?>
+        <a href="?page=attendance" class="f-chip" style="color:#ef4444;background:#fee2e2;text-decoration:none;">✕ Clear all</a>
+    </div>
+    <?php endif; ?>
+
+    <!-- Filter bar -->
     <div class="filter-card">
-        <div class="filter-card-title">🔍 Filter Records</div>
+        <div class="filter-title">🔍 Filter Records</div>
         <form method="GET" class="filter-row">
             <input type="hidden" name="page" value="attendance">
             <select name="child">
                 <option value="">All Children</option>
                 <?php foreach ($children as $c): ?>
-                    <option value="<?= $c['id'] ?>" <?= ($selected_child == $c['id']) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($c['fullname']) ?>
-                    </option>
+                <option value="<?= $c['id'] ?>" <?= ($selected_child == $c['id']) ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($c['fullname']) ?>
+                </option>
                 <?php endforeach; ?>
             </select>
             <select name="status">
@@ -214,54 +285,55 @@ $barClass   = $rate >= 90 ? 'high' : ($rate >= 75 ? 'mid' : 'low');
                 <option value="absent"  <?= $selected_status === 'absent'  ? 'selected' : '' ?>>❌ Absent</option>
             </select>
             <input type="date" name="date" value="<?= htmlspecialchars($selected_date) ?>">
-            <button type="submit" class="btn-filter">Apply Filter</button>
+            <button type="submit" class="btn-apply">Apply Filter</button>
             <a href="?page=attendance" class="btn-reset">Reset</a>
         </form>
     </div>
 
     <!-- Stats -->
-    <div class="stat-row">
-        <div class="stat-card slate">
-            <div class="stat-label">Total Records</div>
-            <div class="stat-val"><?= $total ?></div>
+    <div class="stat-strip">
+        <div class="stat-tile s-total">
+            <div class="stat-tile-label">Total Records</div>
+            <div class="stat-tile-val"><?= $total ?></div>
         </div>
-        <div class="stat-card green">
-            <div class="stat-label">Present</div>
-            <div class="stat-val"><?= $counts['present'] ?></div>
+        <div class="stat-tile s-present">
+            <div class="stat-tile-label">Present</div>
+            <div class="stat-tile-val"><?= $counts['present'] ?></div>
         </div>
-        <div class="stat-card amber">
-            <div class="stat-label">Late</div>
-            <div class="stat-val"><?= $counts['late'] ?></div>
+        <div class="stat-tile s-late">
+            <div class="stat-tile-label">Late</div>
+            <div class="stat-tile-val"><?= $counts['late'] ?></div>
         </div>
-        <div class="stat-card red">
-            <div class="stat-label">Absent</div>
-            <div class="stat-val"><?= $counts['absent'] ?></div>
+        <div class="stat-tile s-absent">
+            <div class="stat-tile-label">Absent</div>
+            <div class="stat-tile-val"><?= $counts['absent'] ?></div>
         </div>
-        <div class="stat-card blue">
-            <div class="stat-label">Attendance Rate</div>
-            <div class="stat-val"><?= $rate ?>%</div>
+        <div class="stat-tile s-rate">
+            <div class="stat-tile-label">Attendance Rate</div>
+            <div class="stat-tile-val"><?= $rate ?>%</div>
         </div>
     </div>
 
     <!-- Rate bar -->
     <div class="rate-card">
-        <div class="rate-label">
-            Attendance Rate
-            <span style="float:right;" class="rate-pct"><?= $rate ?>%</span>
+        <div class="rate-head">
+            <div class="rate-head-label">Attendance Rate</div>
+            <div class="rate-head-pct"><?= $rate ?>%</div>
         </div>
-        <div class="rate-bar-wrap">
+        <div class="rate-bar-track">
             <div class="rate-bar-fill <?= $barClass ?>" style="width:<?= $rate ?>%;"></div>
         </div>
-        <div class="rate-text">
-            <?= $attended ?> attended (present + late) out of <?= $total ?> total school days recorded.
+        <div class="rate-subtext">
+            <?= $attended ?> attended (present + late) out of <?= $total ?> total records
+            <?php if ($selected_child || $selected_status || $selected_date): ?> · filtered view<?php endif; ?>
         </div>
     </div>
 
     <!-- Table -->
     <div class="table-card">
-        <div class="table-header">
-            <div class="table-title">📋 Attendance Records</div>
-            <div class="table-count"><?= $total ?> record<?= $total !== 1 ? 's' : '' ?></div>
+        <div class="table-top">
+            <div class="table-top-title">📋 Attendance Records</div>
+            <div class="table-top-count"><?= $total ?> record<?= $total !== 1 ? 's' : '' ?></div>
         </div>
 
         <?php if (!empty($data_rows)): ?>
@@ -278,7 +350,7 @@ $barClass   = $rate >= 90 ? 'high' : ($rate >= 75 ? 'mid' : 'low');
             <tbody>
             <?php foreach ($data_rows as $i => $row): ?>
             <tr>
-                <td style="color:#94a3b8;"><?= $i + 1 ?></td>
+                <td class="num-col"><?= $i + 1 ?></td>
                 <td><strong><?= htmlspecialchars($row['fullname']) ?></strong></td>
                 <td>
                     <span class="badge <?= $row['status'] ?>">
@@ -287,16 +359,18 @@ $barClass   = $rate >= 90 ? 'high' : ($rate >= 75 ? 'mid' : 'low');
                     </span>
                 </td>
                 <td><?= date('M d, Y', strtotime($row['scan_date'])) ?></td>
-                <td><?= $row['status'] === 'absent' ? '<span style="color:#94a3b8;">—</span>' : date('h:i A', strtotime($row['scan_time'])) ?></td>
+                <td class="time-col">
+                    <?= ($row['status'] !== 'absent' && !empty($row['scan_time'])) ? date('h:i A', strtotime($row['scan_time'])) : '—' ?>
+                </td>
             </tr>
             <?php endforeach; ?>
             </tbody>
         </table>
         <?php else: ?>
-            <div class="empty-state">
-                <div class="ei">📭</div>
-                <p>No attendance records found<?= ($selected_child || $selected_status || $selected_date) ? ' for the selected filters' : '' ?>.</p>
-            </div>
+        <div class="empty-state">
+            <div class="ei">📭</div>
+            <p>No attendance records found<?= ($selected_child || $selected_status || $selected_date) ? ' for the selected filters' : '' ?>.</p>
+        </div>
         <?php endif; ?>
     </div>
 

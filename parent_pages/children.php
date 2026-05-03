@@ -7,7 +7,7 @@ if(!isset($_SESSION['email'])){
 
 $parent_email = $_SESSION['email'];
 
-$stmt = $conn->prepare("SELECT id, name, email FROM user WHERE parent_email = ?");
+$stmt = $conn->prepare("SELECT id, fullname, email FROM users WHERE parent_email = ?");
 $stmt->bind_param("s", $parent_email);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -106,7 +106,7 @@ while($row = $result->fetch_assoc()) $children[] = $row;
 ?>
 <div class="child-card">
     <div class="child-header">
-        <div class="child-avatar"><?= strtoupper(substr($child['name'],0,1)) ?></div>
+        <div class="child-avatar"><?= strtoupper(substr($child['fullname'],0,1)) ?></div>
         <div>
             <div class="child-name"><?= htmlspecialchars($child['name']) ?></div>
             <div class="child-email"><?= htmlspecialchars($child['email']) ?></div>

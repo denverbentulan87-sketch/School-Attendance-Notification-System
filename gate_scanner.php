@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'teac
 $operator = htmlspecialchars($_SESSION['fullname'] ?? 'Staff');
 $today    = date('l, F j, Y');
 ?>
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -58,15 +58,10 @@ $today    = date('l, F j, Y');
             padding: 0 28px;
         }
 
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .topbar-left { display: flex; align-items: center; gap: 12px; }
 
         .logo-dot {
-            width: 10px;
-            height: 10px;
+            width: 10px; height: 10px;
             border-radius: 50%;
             background: var(--green);
             animation: blink 1.5s ease-in-out infinite;
@@ -80,116 +75,71 @@ $today    = date('l, F j, Y');
         .topbar h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
 
         .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            font-size: 13px;
-            color: var(--muted);
+            display: flex; align-items: center; gap: 20px;
+            font-size: 13px; color: var(--muted);
         }
 
         .topbar-right strong { color: var(--text); }
 
         .scanner-panel {
             background: var(--bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 32px;
-            gap: 20px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 32px; gap: 20px;
             position: relative;
         }
 
         .scanner-label {
-            font-size: 11px;
-            letter-spacing: 2.5px;
-            text-transform: uppercase;
-            color: var(--muted);
-            font-weight: 600;
+            font-size: 11px; letter-spacing: 2.5px;
+            text-transform: uppercase; color: var(--muted); font-weight: 600;
         }
 
-        /* Tab switcher */
         .tab-row {
-            display: flex;
-            gap: 8px;
+            display: flex; gap: 8px;
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 4px;
+            border-radius: 12px; padding: 4px;
         }
 
         .tab-btn {
-            padding: 8px 20px;
-            border-radius: 8px;
-            border: none;
-            background: transparent;
-            color: var(--muted);
-            font-family: 'Sora', sans-serif;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
+            padding: 8px 20px; border-radius: 8px; border: none;
+            background: transparent; color: var(--muted);
+            font-family: 'Sora', sans-serif; font-size: 13px;
+            font-weight: 600; cursor: pointer; transition: all 0.2s;
         }
 
-        .tab-btn.active {
-            background: var(--green-d);
-            color: #fff;
-        }
+        .tab-btn.active { background: var(--green-d); color: #fff; }
 
         #reader {
-            width: 100%;
-            max-width: 480px;
-            border-radius: 20px;
-            overflow: hidden;
+            width: 100%; max-width: 480px;
+            border-radius: 20px; overflow: hidden;
             position: relative;
             box-shadow: 0 0 0 1px var(--border), 0 0 40px rgba(34,197,94,0.08);
-            min-height: 300px;
-            background: #000;
+            min-height: 300px; background: #000;
         }
 
         #reader video { border-radius: 20px; width: 100% !important; }
         #reader img   { display: none !important; }
 
-        /* Hide the default Html5Qrcode UI elements we don't need */
         #reader > div > select,
         #reader > div > button,
         #reader__dashboard,
         #reader__dashboard_section,
         #reader__filescan_input { display: none !important; }
 
-        /* Scan frame: corners only — no darkening shadow that hurts QR decode */
         .scan-frame {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 10;
-            border-radius: 20px;
+            position: absolute; inset: 0;
+            pointer-events: none; z-index: 10; border-radius: 20px;
         }
 
-        /* Four corner brackets via a pseudo + box-shadow trick — no fill */
-        .scan-frame::before,
-        .scan-frame::after {
+        .scan-frame::before {
             content: '';
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             width: 200px; height: 200px;
-        }
-
-        /* Green corner brackets */
-        .scan-frame::before {
-            border: 3px solid transparent;
-            border-radius: 10px;
-            background:
-                linear-gradient(var(--bg), var(--bg)) padding-box,
-                linear-gradient(var(--green), var(--green)) border-box;
-            /* Only show corners using clip tricks */
-            -webkit-mask:
-                linear-gradient(#fff 0 0) content-box,
-                linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
             border: 3px solid var(--green);
+            border-radius: 10px;
             clip-path: polygon(
                 0 16px, 0 0, 16px 0,
                 calc(100% - 16px) 0, 100% 0, 100% 16px,
@@ -198,8 +148,10 @@ $today    = date('l, F j, Y');
             );
         }
 
-        /* Scan line animation */
         .scan-frame::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
             width: 190px; height: 2px;
             background: linear-gradient(90deg, transparent, var(--green), transparent);
             border-radius: 99px;
@@ -213,14 +165,10 @@ $today    = date('l, F j, Y');
             100% { transform: translate(-50%, -50%) translateY(90px); opacity: 0; }
         }
 
-        /* Upload panel */
         .upload-panel {
-            width: 100%;
-            max-width: 480px;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
+            width: 100%; max-width: 480px;
+            display: none; flex-direction: column;
+            align-items: center; gap: 16px;
         }
 
         .upload-panel.active { display: flex; }
@@ -228,10 +176,8 @@ $today    = date('l, F j, Y');
         .upload-drop {
             width: 100%;
             border: 2px dashed var(--border);
-            border-radius: 20px;
-            padding: 48px 24px;
-            text-align: center;
-            cursor: pointer;
+            border-radius: 20px; padding: 48px 24px;
+            text-align: center; cursor: pointer;
             transition: border-color 0.2s, background 0.2s;
             position: relative;
         }
@@ -242,62 +188,38 @@ $today    = date('l, F j, Y');
         }
 
         .upload-drop input[type=file] {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            cursor: pointer;
-            width: 100%;
-            height: 100%;
+            position: absolute; inset: 0; opacity: 0;
+            cursor: pointer; width: 100%; height: 100%;
         }
 
         .upload-icon { font-size: 40px; margin-bottom: 12px; }
 
-        .upload-drop p {
-            color: var(--muted);
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
+        .upload-drop p { color: var(--muted); font-size: 13px; line-height: 1.6; }
         .upload-drop strong { color: var(--text); }
 
         #uploadPreview {
-            max-width: 260px;
-            max-height: 260px;
-            border-radius: 12px;
-            border: 2px solid var(--border);
+            max-width: 260px; max-height: 260px;
+            border-radius: 12px; border: 2px solid var(--border);
             display: none;
         }
 
         .scanner-hint {
-            font-size: 13px;
-            color: var(--muted);
-            text-align: center;
-            max-width: 360px;
-            line-height: 1.6;
+            font-size: 13px; color: var(--muted);
+            text-align: center; max-width: 360px; line-height: 1.6;
         }
 
         .side-panel {
             background: var(--surface);
             border-left: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 24px;
-            gap: 20px;
-            overflow-y: auto;
+            display: flex; flex-direction: column;
+            padding: 24px; gap: 20px; overflow-y: auto;
         }
 
-        .stats-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
         .stat-box {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 12px; padding: 16px; text-align: center;
         }
 
         .stat-box .val { font-size: 28px; font-weight: 800; line-height: 1; }
@@ -306,11 +228,8 @@ $today    = date('l, F j, Y');
         .val.red   { color: var(--red); }
 
         .result-card {
-            border-radius: 16px;
-            padding: 20px;
-            display: none;
-            flex-direction: column;
-            gap: 10px;
+            border-radius: 16px; padding: 20px;
+            display: none; flex-direction: column; gap: 10px;
             animation: slideIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
         }
 
@@ -329,31 +248,21 @@ $today    = date('l, F j, Y');
         .result-time { font-size: 13px; font-weight: 600; margin-top: 4px; }
 
         .log-header {
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: var(--muted);
-            border-bottom: 1px solid var(--border);
+            font-size: 12px; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: var(--muted); border-bottom: 1px solid var(--border);
             padding-bottom: 10px;
         }
 
         .log-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            flex: 1;
-            overflow-y: auto;
+            display: flex; flex-direction: column;
+            gap: 8px; flex: 1; overflow-y: auto;
         }
 
         .log-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 12px;
-            border-radius: 10px;
-            background: var(--bg);
-            border: 1px solid var(--border);
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px; border-radius: 10px;
+            background: var(--bg); border: 1px solid var(--border);
             animation: fadeIn 0.25s ease both;
         }
 
@@ -364,24 +273,28 @@ $today    = date('l, F j, Y');
 
         .log-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
         .log-dot.present { background: var(--green); }
+        .log-dot.late    { background: var(--amber); }
+        .log-dot.absent  { background: var(--red); }
         .log-dot.error   { background: var(--red); }
 
         .log-name  { font-size: 13px; font-weight: 600; flex: 1; }
+
         .log-badge {
             font-size: 10px; font-weight: 700;
             padding: 3px 10px; border-radius: 99px; letter-spacing: 0.5px;
         }
 
         .log-badge.present { background: #052e16; color: var(--green); }
+        .log-badge.late    { background: #1c1505; color: var(--amber); }
+        .log-badge.absent  { background: #1c0505; color: var(--red); }
         .log-badge.error   { background: #1c0505; color: var(--red); }
         .log-badge.dup     { background: #1c1505; color: var(--amber); }
+
         .log-time  { font-size: 11px; color: var(--muted); }
 
         .empty-log {
-            text-align: center;
-            color: var(--muted);
-            font-size: 13px;
-            padding: 24px 0;
+            text-align: center; color: var(--muted);
+            font-size: 13px; padding: 24px 0;
         }
 
         @media (max-width: 768px) {
@@ -414,7 +327,6 @@ $today    = date('l, F j, Y');
     <div class="scanner-panel">
         <span class="scanner-label">Point camera at student QR code</span>
 
-        <!-- Tab switcher: Camera vs Upload -->
         <div class="tab-row">
             <button class="tab-btn active" onclick="switchTab('camera')">📷 Camera Scan</button>
             <button class="tab-btn"        onclick="switchTab('upload')">📁 Upload QR Image</button>
@@ -476,10 +388,10 @@ $today    = date('l, F j, Y');
 </div>
 
 <script>
-let scanCooldown = false;
-let presentCount = 0;
-let dupCount     = 0;
-let html5QrCode  = null;
+let scanCooldown  = false;
+let presentCount  = 0;
+let dupCount      = 0;
+let html5QrCode   = null;
 let cameraStarted = false;
 
 // ── Tab switching ─────────────────────────────────────────────────────────
@@ -510,27 +422,30 @@ function setHint(html) {
 function startCamera() {
     if (cameraStarted) return;
 
-    html5QrCode = new Html5Qrcode("reader", { verbose: false });
+    html5QrCode = new Html5Qrcode("reader", {
+        verbose: false,
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+    });
 
     const config = {
-        fps: 10,
-        // No qrbox restriction — scan the full video frame for reliability
+        fps: 30,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0,
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
     };
 
-    // Try environment (back) camera first, fall back to any camera
     html5QrCode.start(
         { facingMode: "environment" },
         config,
         onQrDecoded,
-        () => {} // per-frame error — silent
+        () => {}
     )
     .then(() => {
         cameraStarted = true;
         setHint('📷 Camera active — hold QR code steady in view.');
     })
     .catch(() => {
-        // Back camera failed — try any available camera
         html5QrCode.start(
             { facingMode: "user" },
             config,
@@ -567,7 +482,7 @@ function onQrDecoded(decodedText) {
     scanCooldown = true;
     playBeep();
     processToken(decodedText);
-    setTimeout(() => { scanCooldown = false; }, 2500);
+    setTimeout(() => { scanCooldown = false; }, 1500);
 }
 
 // Auto-start camera on page load
@@ -581,10 +496,9 @@ function handleFileUpload(event) {
     const statusEl  = document.getElementById('uploadStatus');
     const previewEl = document.getElementById('uploadPreview');
 
-    // Show preview
     const fr = new FileReader();
     fr.onload = e => {
-        previewEl.src          = e.target.result;
+        previewEl.src           = e.target.result;
         previewEl.style.display = 'block';
     };
     fr.readAsDataURL(file);
@@ -604,7 +518,7 @@ function handleFileUpload(event) {
         });
 }
 
-// ── Token extraction + attendance call ───────────────────────────────────
+// ── Token extraction + attendance call ────────────────────────────────────
 function processToken(raw) {
     let token = raw.trim();
     try {
@@ -637,16 +551,14 @@ function showResult(data) {
     if (data.status === 'success') {
         const attStatus = (data.att_status || 'present').toLowerCase();
 
-        // ── Color and icon follow the actual attendance status ──
         if (attStatus === 'present') {
-            card.classList.add('success');   // green
+            card.classList.add('success');
             icon.textContent = '✅';
         } else if (attStatus === 'late') {
-            card.classList.add('warn');      // amber
+            card.classList.add('warn');
             icon.textContent = '🕐';
         } else {
-            // absent — scanned outside the valid window
-            card.classList.add('error');     // red
+            card.classList.add('error');
             icon.textContent = '❌';
         }
 
@@ -668,12 +580,13 @@ function showResult(data) {
         addLog(data.student_name, 'dup', now);
 
     } else {
+        const isClosedScanner = data.student_name && data.student_name !== '';
         card.classList.add('error');
-        icon.textContent = '❌';
-        name.textContent = 'Scan Failed';
+        icon.textContent = isClosedScanner ? '🚫' : '❌';
+        name.textContent = data.student_name || 'Scan Failed';
         sub.textContent  = data.message || 'Invalid or unrecognized QR code.';
         time.textContent = '🕐 ' + now;
-        addLog('Unknown QR', 'error', now);
+        addLog(data.student_name || 'Unknown QR', isClosedScanner ? 'absent' : 'error', now);
     }
 
     document.getElementById('uploadStatus').textContent = '';
@@ -687,11 +600,10 @@ function addLog(studentName, type, time) {
     const empty = list.querySelector('.empty-log');
     if (empty) empty.remove();
 
-    // Map status to label and dot color
     const labels   = { present: 'Present', late: 'Late', absent: 'Absent', error: 'Error', dup: 'Duplicate' };
-    const dotClass = (type === 'present') ? 'present'
-                   : (type === 'late')    ? 'late'
-                   : (type === 'absent')  ? 'absent-dot'
+    const dotClass = type === 'present' ? 'present'
+                   : type === 'late'    ? 'late'
+                   : type === 'absent'  ? 'absent'
                    : 'error';
 
     const item = document.createElement('div');
@@ -706,22 +618,18 @@ function addLog(studentName, type, time) {
 
     const items = list.querySelectorAll('.log-item');
     if (items.length > 50) items[items.length - 1].remove();
-    
 }
-.log-dot.late        { background: var(--amber); }
-.log-dot.absent-dot  { background: var(--red); }
 
-.log-badge.late   { background: #1c1505; color: var(--amber); }
-.log-badge.absent { background: #1c0505; color: var(--red);
- }
 // ── Beep ──────────────────────────────────────────────────────────────────
 function playBeep() {
     try {
         const ctx  = new (window.AudioContext || window.webkitAudioContext)();
         const osc  = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.frequency.value = 880; osc.type = 'sine';
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        osc.type = 'sine';
         gain.gain.setValueAtTime(0.3, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
         osc.start(ctx.currentTime);

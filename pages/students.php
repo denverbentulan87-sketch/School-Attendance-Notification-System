@@ -74,10 +74,18 @@ if (isset($_POST['update'])) {
 
 /* ── DELETE ── */
 if (isset($_GET['delete'])) {
-    $id   = intval($_GET['delete']);
+    $id = intval($_GET['delete']);
+
+    // Delete attendance records first to satisfy the foreign key constraint
+    $del_att = $conn->prepare("DELETE FROM attendance WHERE student_id=?");
+    $del_att->bind_param("i", $id);
+    $del_att->execute();
+
+    // Now safe to delete the student
     $stmt = $conn->prepare("DELETE FROM users WHERE id=?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
+
     echo "<script>window.location.href='admin_dashboard.php?page=students';</script>";
     exit();
 }

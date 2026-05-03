@@ -211,7 +211,7 @@ $records = $conn->query("
                 <input type="hidden" name="page" value="attendance">
 
                 <label>📅 Date</label>
-                <input type="date" name="filter_date" value="<?= htmlspecialchars($filter_date) ?>">
+                <input type="date" name="filter_date" value="<?= htmlspecialchars($filter_date) ?>" onchange="this.form.submit()">
 
                 <div class="filter-divider"></div>
 

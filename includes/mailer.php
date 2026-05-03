@@ -21,17 +21,41 @@ function create_mailer(): PHPMailer {
 }
 
 /**
- * Send QR code image to newly registered student
+ * Send QR code image to newly registered student.
  */
-function send_qr_email(string $student_email, string $student_name, string $qr_local_path): void {
+function send_qr_email(string $student_email, string $student_name, string $qr_url): void {
     try {
         $mail = create_mailer();
         $mail->addAddress($student_email, $student_name);
         $mail->isHTML(true);
         $mail->Subject = 'Your Attendance QR Code — Save & Use at Gate Scanner';
 
-        $mail->AddEmbeddedImage($qr_local_path, 'qr_code', 'attendance_qr.png', 'base64', 'image/png');
-        $mail->addAttachment($qr_local_path, 'attendance_qr_' . preg_replace('/\s+/', '_', $student_name) . '.png');
+        $qr_bytes = @file_get_contents($qr_url);
+
+        if ($qr_bytes !== false) {
+            $mail->addStringEmbeddedImage(
+                $qr_bytes,
+                'qr_code',
+                'attendance_qr.png',
+                'base64',
+                'image/png'
+            );
+            $mail->addStringAttachment(
+                $qr_bytes,
+                'attendance_qr_' . preg_replace('/\s+/', '_', $student_name) . '.png',
+                'base64',
+                'image/png'
+            );
+            $img_tag = "<img src='cid:qr_code'
+                             alt='Your Attendance QR Code'
+                             style='width:260px;height:260px;border:4px solid #16a34a;
+                                    border-radius:12px;display:block;margin:0 auto;'>";
+        } else {
+            $img_tag = "<img src='" . htmlspecialchars($qr_url) . "'
+                             alt='Your Attendance QR Code'
+                             style='width:260px;height:260px;border:4px solid #16a34a;
+                                    border-radius:12px;display:block;margin:0 auto;'>";
+        }
 
         $mail->Body = "
             <div style='font-family:sans-serif;max-width:520px;margin:auto;padding:32px;
@@ -42,10 +66,7 @@ function send_qr_email(string $student_email, string $student_name, string $qr_l
                     Please follow the instructions below.
                 </p>
                 <div style='text-align:center;margin:24px 0;'>
-                    <img src='cid:qr_code'
-                         alt='Your Attendance QR Code'
-                         style='width:260px;height:260px;border:4px solid #16a34a;
-                                border-radius:12px;display:block;margin:0 auto;'>
+                    {$img_tag}
                 </div>
                 <div style='text-align:center;margin-bottom:24px;'>
                     <p style='background:#dcfce7;color:#15803d;font-weight:700;font-size:14px;
@@ -83,6 +104,7 @@ function send_qr_email(string $student_email, string $student_name, string $qr_l
         ";
         $mail->AltBody = "Hello {$student_name}, your QR code is attached to this email as a PNG file. Save it to your phone and show it at the gate scanner every day to mark your attendance.";
         $mail->send();
+
     } catch (Exception $e) {
         error_log("QR email error [{$student_email}]: " . $e->getMessage());
     }
@@ -95,19 +117,10 @@ function verify_gmail_exists(string $email): bool {
     $sender = 'denverbentulan87@gmail.com';
 
     try {
-        $context = stream_context_create([
-            'ssl' => [
-                'verify_peer'      => true,
-                'verify_peer_name' => true,
-                'cafile'           => defined('OPENSSL_CAFILE') ? OPENSSL_CAFILE : ini_get('openssl.cafile'),
-            ]
-        ]);
-
         $socket = @stream_socket_client(
             'tcp://smtp.gmail.com:587',
             $errno, $errstr, 10,
-            STREAM_CLIENT_CONNECT,
-            $context
+            STREAM_CLIENT_CONNECT
         );
 
         if (!$socket) {
@@ -121,7 +134,7 @@ function verify_gmail_exists(string $email): bool {
             $response = '';
             while ($line = fgets($socket, 512)) {
                 $response .= $line;
-                if ($line[3] === ' ') break;
+                if (isset($line[3]) && $line[3] === ' ') break;
             }
             return $response;
         };
@@ -133,14 +146,11 @@ function verify_gmail_exists(string $email): bool {
         $read();
         $write("EHLO verify.local");
         $read();
-
         $write("STARTTLS");
         $read();
         stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
-
         $write("EHLO verify.local");
         $read();
-
         $write("AUTH LOGIN");
         $read();
         $write(base64_encode($sender));
@@ -157,10 +167,8 @@ function verify_gmail_exists(string $email): bool {
 
         $write("MAIL FROM:<{$sender}>");
         $read();
-
         $write("RCPT TO:<{$email}>");
         $rcpt = $read();
-
         $write("QUIT");
         fclose($socket);
 
@@ -178,7 +186,7 @@ function verify_gmail_exists(string $email): bool {
 }
 
 /**
- * STEP 2: Send a 6-digit OTP to a verified Gmail inbox.
+ * Send a 6-digit OTP to a verified Gmail inbox.
  */
 function send_otp_email(string $to, string $name, string $otp): bool {
     if (!verify_gmail_exists($to)) {
@@ -221,7 +229,7 @@ function send_otp_email(string $to, string $name, string $otp): bool {
 }
 
 /**
- * Notify parent of their auto-created account credentials
+ * Notify parent of their auto-created account credentials.
  */
 function send_parent_welcome_email(
     string $parent_email,
@@ -263,18 +271,28 @@ function send_parent_welcome_email(
 }
 
 /**
- * Notify parent when student scans QR — status: present or late
+ * Notify parent when student scans QR — status: present or late.
+ * $scan_time is nullable — if null/empty, time row is hidden in the email.
  */
 function send_attendance_notification(
     string $parent_email,
     string $student_name,
     string $status,
-    string $scan_time
+    ?string $scan_time = null
 ): void {
+    // If status is absent, delegate to the dedicated absent function
+    if ($status === 'absent') {
+        send_absent_notification($parent_email, $student_name);
+        return;
+    }
+
     try {
         $mail         = create_mailer();
-        $time_display = date('h:i A', strtotime($scan_time));
         $date_display = date('F j, Y');
+
+        // Only show time row if scan_time is a valid non-empty value
+        $has_time     = !empty($scan_time) && $scan_time !== 'N/A';
+        $time_display = $has_time ? date('h:i A', strtotime($scan_time)) : null;
 
         $mail->addAddress($parent_email);
         $mail->isHTML(true);
@@ -296,6 +314,14 @@ function send_attendance_notification(
                     to be marked present.
                 </p>";
         }
+
+        $time_row = $time_display ? "
+            <tr>
+                <td style='color:#64748b;padding:6px 0;'>Time scanned</td>
+                <td style='color:#1e293b;font-weight:600;padding:6px 0;'>
+                    {$time_display}
+                </td>
+            </tr>" : '';
 
         $mail->Body = "
             <div style='font-family:sans-serif;max-width:520px;margin:auto;padding:32px;
@@ -322,12 +348,7 @@ function send_attendance_notification(
                                 </span>
                             </td>
                         </tr>
-                        <tr>
-                            <td style='color:#64748b;padding:6px 0;'>Time scanned</td>
-                            <td style='color:#1e293b;font-weight:600;padding:6px 0;'>
-                                {$time_display}
-                            </td>
-                        </tr>
+                        {$time_row}
                     </table>
                 </div>
 
@@ -338,7 +359,8 @@ function send_attendance_notification(
                 </p>
             </div>
         ";
-        $mail->AltBody = "Attendance update for {$student_name}: {$label} at {$time_display} on {$date_display}.";
+        $time_alt      = $time_display ? " at {$time_display}" : '';
+        $mail->AltBody = "Attendance update for {$student_name}: {$label}{$time_alt} on {$date_display}.";
         $mail->send();
 
     } catch (Exception $e) {
@@ -347,8 +369,8 @@ function send_attendance_notification(
 }
 
 /**
- * Notify parent when student has no scan record — status: absent
- * Called by notify_absent.php via cron at 9:01 AM
+ * Notify parent when student has no scan record — status: absent.
+ * Called by notify_absent.php via cron/scheduler or manually from notifications tab.
  */
 function send_absent_notification(
     string $parent_email,
