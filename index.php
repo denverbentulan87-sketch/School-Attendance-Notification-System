@@ -34,10 +34,6 @@ $result = $conn->query("SELECT * FROM users");
     html { scroll-behavior: smooth; font-family: 'Figtree', sans-serif; }
     body { background: var(--navy); color: var(--white); overflow-x: hidden; }
 
-    /* ══════════════════════════════════════
-       LANDING PAGE
-    ══════════════════════════════════════ */
-
     /* ── NAV ── */
     .lp-nav {
       position: fixed;
@@ -130,7 +126,6 @@ $result = $conn->query("SELECT * FROM users");
       padding: 120px 60px 80px;
     }
 
-    /* Grid lines */
     .lp-hero::before {
       content: '';
       position: absolute; inset: 0;
@@ -141,7 +136,6 @@ $result = $conn->query("SELECT * FROM users");
       pointer-events: none;
     }
 
-    /* Glow blobs */
     .hero-blob-1 {
       position: absolute;
       top: -160px; right: -100px;
@@ -211,10 +205,7 @@ $result = $conn->query("SELECT * FROM users");
       animation: fadeUp 0.7s 0.1s ease both;
     }
 
-    .hero-h1 .gold-italic {
-      color: var(--gold);
-      font-style: italic;
-    }
+    .hero-h1 .gold-italic { color: var(--gold); font-style: italic; }
 
     .hero-desc {
       font-size: 16px;
@@ -274,10 +265,7 @@ $result = $conn->query("SELECT * FROM users");
       border-color: rgba(255,255,255,0.2);
     }
 
-    /* Hero right — stats card */
-    .hero-right {
-      animation: fadeUp 0.7s 0.25s ease both;
-    }
+    .hero-right { animation: fadeUp 0.7s 0.25s ease both; }
 
     .hero-stats-card {
       background: rgba(22,34,54,0.7);
@@ -288,598 +276,120 @@ $result = $conn->query("SELECT * FROM users");
       box-shadow: 0 24px 64px rgba(0,0,0,0.3);
     }
 
-    .hsc-label {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--gold);
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      margin-bottom: 20px;
-    }
-
-    .hsc-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .hsc-stat {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 12px;
-      padding: 18px 20px;
-    }
-
-    .hsc-stat-num {
-      font-family: 'Fraunces', serif;
-      font-size: 30px;
-      font-weight: 700;
-      color: var(--gold-lt);
-      letter-spacing: -1px;
-      line-height: 1;
-    }
-
-    .hsc-stat-label {
-      font-size: 11.5px;
-      color: var(--gray-3);
-      font-weight: 500;
-      margin-top: 5px;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-    }
-
-    .hsc-divider {
-      height: 1px;
-      background: rgba(255,255,255,0.06);
-      margin-bottom: 20px;
-    }
-
-    .hsc-features {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .hsc-feature {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 13.5px;
-      color: var(--gray-3);
-      font-weight: 500;
-    }
-
-    .hsc-feature-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--gold);
-      flex-shrink: 0;
-      box-shadow: 0 0 6px rgba(200,151,58,0.5);
-    }
+    .hsc-label { font-size: 11px; font-weight: 700; color: var(--gold); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 20px; }
+    .hsc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .hsc-stat { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 18px 20px; }
+    .hsc-stat-num { font-family: 'Fraunces', serif; font-size: 30px; font-weight: 700; color: var(--gold-lt); letter-spacing: -1px; line-height: 1; }
+    .hsc-stat-label { font-size: 11.5px; color: var(--gray-3); font-weight: 500; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.6px; }
+    .hsc-divider { height: 1px; background: rgba(255,255,255,0.06); margin-bottom: 20px; }
+    .hsc-features { display: flex; flex-direction: column; gap: 12px; }
+    .hsc-feature { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--gray-3); font-weight: 500; }
+    .hsc-feature-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink: 0; box-shadow: 0 0 6px rgba(200,151,58,0.5); }
 
     /* ── FEATURES SECTION ── */
-    .lp-features {
-      padding: 100px 60px;
-      background: var(--navy-2);
-      position: relative;
-      overflow: hidden;
-    }
+    .lp-features { padding: 100px 60px; background: var(--navy-2); position: relative; overflow: hidden; }
+    .lp-features::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; }
 
-    .lp-features::before {
-      content: '';
-      position: absolute; inset: 0;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 60px 60px;
-      pointer-events: none;
-    }
+    .section-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 2; }
 
-    .section-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      position: relative;
-      z-index: 2;
-    }
+    .section-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: rgba(200,151,58,0.1); border: 1px solid rgba(200,151,58,0.2); border-radius: 100px; padding: 5px 14px; font-size: 11.5px; font-weight: 700; color: var(--gold-lt); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
+    .section-title { font-family: 'Fraunces', serif; font-size: clamp(30px, 3.5vw, 44px); font-weight: 800; color: var(--white); letter-spacing: -1.2px; line-height: 1.1; margin-bottom: 16px; }
+    .section-sub { font-size: 15px; color: var(--gray-3); max-width: 500px; line-height: 1.7; margin-bottom: 56px; }
 
-    .section-eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(200,151,58,0.1);
-      border: 1px solid rgba(200,151,58,0.2);
-      border-radius: 100px;
-      padding: 5px 14px;
-      font-size: 11.5px;
-      font-weight: 700;
-      color: var(--gold-lt);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-    }
-
-    .section-title {
-      font-family: 'Fraunces', serif;
-      font-size: clamp(30px, 3.5vw, 44px);
-      font-weight: 800;
-      color: var(--white);
-      letter-spacing: -1.2px;
-      line-height: 1.1;
-      margin-bottom: 16px;
-    }
-
-    .section-sub {
-      font-size: 15px;
-      color: var(--gray-3);
-      max-width: 500px;
-      line-height: 1.7;
-      margin-bottom: 56px;
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-
-    .feature-card {
-      background: rgba(13,27,42,0.6);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 16px;
-      padding: 28px 26px;
-      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .feature-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--gold), transparent);
-      opacity: 0;
-      transition: opacity 0.25s;
-    }
-
-    .feature-card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(200,151,58,0.2);
-      box-shadow: 0 16px 40px rgba(0,0,0,0.25);
-    }
-
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .feature-card { background: rgba(13,27,42,0.6); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 28px 26px; transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s; position: relative; overflow: hidden; }
+    .feature-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--gold), transparent); opacity: 0; transition: opacity 0.25s; }
+    .feature-card:hover { transform: translateY(-4px); border-color: rgba(200,151,58,0.2); box-shadow: 0 16px 40px rgba(0,0,0,0.25); }
     .feature-card:hover::before { opacity: 1; }
-
-    .feature-icon {
-      width: 48px; height: 48px;
-      background: rgba(200,151,58,0.12);
-      border: 1px solid rgba(200,151,58,0.2);
-      border-radius: 13px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px;
-      margin-bottom: 18px;
-    }
-
-    .feature-title {
-      font-family: 'Fraunces', serif;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--white);
-      margin-bottom: 10px;
-      letter-spacing: -0.3px;
-    }
-
-    .feature-desc {
-      font-size: 13.5px;
-      color: var(--gray-3);
-      line-height: 1.65;
-    }
+    .feature-icon { width: 48px; height: 48px; background: rgba(200,151,58,0.12); border: 1px solid rgba(200,151,58,0.2); border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 18px; }
+    .feature-title { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: var(--white); margin-bottom: 10px; letter-spacing: -0.3px; }
+    .feature-desc { font-size: 13.5px; color: var(--gray-3); line-height: 1.65; }
 
     /* ── HOW IT WORKS ── */
-    .lp-how {
-      padding: 100px 60px;
-      background: var(--navy);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .lp-how::after {
-      content: '';
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 800px; height: 400px;
-      background: radial-gradient(ellipse, rgba(74,111,165,0.08) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    .steps-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0;
-      position: relative;
-    }
-
-    .steps-grid::before {
-      content: '';
-      position: absolute;
-      top: 28px; left: calc(12.5% + 24px); right: calc(12.5% + 24px);
-      height: 1px;
-      background: linear-gradient(90deg, var(--gold), rgba(200,151,58,0.2), var(--gold));
-      z-index: 0;
-    }
-
-    .step-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 0 20px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .step-num {
-      width: 56px; height: 56px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--gold), var(--gold-lt));
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Fraunces', serif;
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--navy);
-      margin-bottom: 20px;
-      box-shadow: 0 6px 20px rgba(200,151,58,0.35);
-      flex-shrink: 0;
-    }
-
-    .step-title {
-      font-family: 'Fraunces', serif;
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--white);
-      margin-bottom: 10px;
-      letter-spacing: -0.3px;
-    }
-
-    .step-desc {
-      font-size: 13px;
-      color: var(--gray-3);
-      line-height: 1.65;
-    }
+    .lp-how { padding: 100px 60px; background: var(--navy); position: relative; overflow: hidden; }
+    .lp-how::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 800px; height: 400px; background: radial-gradient(ellipse, rgba(74,111,165,0.08) 0%, transparent 70%); pointer-events: none; }
+    .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; position: relative; }
+    .steps-grid::before { content: ''; position: absolute; top: 28px; left: calc(12.5% + 24px); right: calc(12.5% + 24px); height: 1px; background: linear-gradient(90deg, var(--gold), rgba(200,151,58,0.2), var(--gold)); z-index: 0; }
+    .step-item { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 20px; position: relative; z-index: 1; }
+    .step-num { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--gold-lt)); display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 20px; box-shadow: 0 6px 20px rgba(200,151,58,0.35); flex-shrink: 0; }
+    .step-title { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 700; color: var(--white); margin-bottom: 10px; letter-spacing: -0.3px; }
+    .step-desc { font-size: 13px; color: var(--gray-3); line-height: 1.65; }
 
     /* ── ROLES SECTION ── */
-    .lp-roles {
-      padding: 100px 60px;
-      background: var(--navy-2);
-      position: relative;
-    }
-
-    .roles-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      margin-top: 56px;
-    }
-
-    .role-card {
-      border-radius: 18px;
-      padding: 32px 28px;
-      border: 1px solid rgba(255,255,255,0.07);
-      transition: transform 0.25s, box-shadow 0.25s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .role-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 20px 48px rgba(0,0,0,0.3);
-    }
-
+    .lp-roles { padding: 100px 60px; background: var(--navy-2); position: relative; }
+    .roles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 56px; }
+    .role-card { border-radius: 18px; padding: 32px 28px; border: 1px solid rgba(255,255,255,0.07); transition: transform 0.25s, box-shadow 0.25s; position: relative; overflow: hidden; }
+    .role-card:hover { transform: translateY(-4px); box-shadow: 0 20px 48px rgba(0,0,0,0.3); }
     .role-card.admin-card { background: linear-gradient(135deg, #0d1f35, #0f2a1e); }
     .role-card.student-card { background: linear-gradient(135deg, #14213d, #0d1b2a); }
     .role-card.parent-card { background: linear-gradient(135deg, #1a1a2e, #0d1b2a); }
-
-    .role-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      padding: 5px 12px;
-      border-radius: 100px;
-      margin-bottom: 20px;
-    }
-
+    .role-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; padding: 5px 12px; border-radius: 100px; margin-bottom: 20px; }
     .admin-card .role-badge { background: rgba(22,163,74,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.2); }
     .student-card .role-badge { background: rgba(74,111,165,0.2); color: #93C5FD; border: 1px solid rgba(147,197,253,0.2); }
     .parent-card .role-badge { background: rgba(200,151,58,0.15); color: var(--gold-lt); border: 1px solid rgba(232,184,96,0.2); }
-
-    .role-title {
-      font-family: 'Fraunces', serif;
-      font-size: 22px;
-      font-weight: 800;
-      color: var(--white);
-      margin-bottom: 14px;
-      letter-spacing: -0.5px;
-    }
-
-    .role-desc {
-      font-size: 13.5px;
-      color: var(--gray-3);
-      line-height: 1.65;
-      margin-bottom: 20px;
-    }
-
-    .role-perks {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .role-perks li {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--gray-3);
-    }
-
-    .role-perks li::before {
-      content: '✓';
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--gold);
-      flex-shrink: 0;
-    }
+    .role-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 800; color: var(--white); margin-bottom: 14px; letter-spacing: -0.5px; }
+    .role-desc { font-size: 13.5px; color: var(--gray-3); line-height: 1.65; margin-bottom: 20px; }
+    .role-perks { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .role-perks li { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--gray-3); }
+    .role-perks li::before { content: '✓'; font-size: 11px; font-weight: 800; color: var(--gold); flex-shrink: 0; }
 
     /* ── CTA BANNER ── */
-    .lp-cta {
-      padding: 100px 60px;
+    .lp-cta { padding: 100px 60px; background: var(--navy); position: relative; overflow: hidden; }
+    .lp-cta::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 700px; height: 400px; background: radial-gradient(ellipse, rgba(200,151,58,0.1) 0%, transparent 65%); pointer-events: none; }
+    .cta-box { max-width: 700px; margin: 0 auto; text-align: center; position: relative; z-index: 2; }
+    .cta-box .section-title { margin-bottom: 16px; }
+    .cta-box .section-sub { margin: 0 auto 40px; text-align: center; }
+    .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    /* ── FOOTER ── */
+    .lp-footer { background: rgba(13,27,42,0.95); border-top: 1px solid rgba(255,255,255,0.06); padding: 28px 60px; display: flex; align-items: center; justify-content: space-between; }
+    .footer-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .footer-brand-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--gold), var(--gold-lt)); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .footer-brand-name { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 700; color: var(--white); }
+    .footer-copy { font-size: 12.5px; color: var(--gray-4); }
+    .footer-links { display: flex; gap: 24px; list-style: none; }
+    .footer-links a { font-size: 13px; color: var(--gray-4); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--gray-3); }
+
+    /* ══════════════════════════════════════
+       AUTH SECTION — centered, no left panel
+    ══════════════════════════════════════ */
+    .auth-section {
       background: var(--navy);
+      min-height: 100vh;
       position: relative;
       overflow: hidden;
     }
 
-    .lp-cta::before {
+    .auth-section::before {
       content: '';
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 700px; height: 400px;
-      background: radial-gradient(ellipse, rgba(200,151,58,0.1) 0%, transparent 65%);
+      width: 700px; height: 500px;
+      background: radial-gradient(ellipse, rgba(200,151,58,0.08) 0%, transparent 65%);
       pointer-events: none;
     }
 
-    .cta-box {
-      max-width: 700px;
-      margin: 0 auto;
-      text-align: center;
+    .page {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 40px 24px;
       position: relative;
       z-index: 2;
     }
 
-    .cta-box .section-title { margin-bottom: 16px; }
-    .cta-box .section-sub { margin: 0 auto 40px; text-align: center; }
-
-    .cta-actions {
-      display: flex;
-      gap: 14px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    /* ── FOOTER ── */
-    .lp-footer {
-      background: rgba(13,27,42,0.95);
-      border-top: 1px solid rgba(255,255,255,0.06);
-      padding: 28px 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .footer-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-    }
-
-    .footer-brand-icon {
-      width: 32px; height: 32px;
-      background: linear-gradient(135deg, var(--gold), var(--gold-lt));
-      border-radius: 9px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-    }
-
-    .footer-brand-name {
-      font-family: 'Fraunces', serif;
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--white);
-    }
-
-    .footer-copy {
-      font-size: 12.5px;
-      color: var(--gray-4);
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 24px;
-      list-style: none;
-    }
-
-    .footer-links a {
-      font-size: 13px;
-      color: var(--gray-4);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .footer-links a:hover { color: var(--gray-3); }
-
-    /* ══════════════════════════════════════
-       AUTH PAGE (original login/register)
-    ══════════════════════════════════════ */
-    .auth-section {
-      background: var(--gray-1);
-      min-height: 100vh;
-    }
-
-    .page {
-      display: grid;
-      grid-template-columns: 1fr 520px;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    /* ══ LEFT PANEL ══ */
-    .left-panel {
-      background: var(--navy);
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 60px 64px;
-    }
-
-    .left-panel::before {
-      content: '';
-      position: absolute;
-      top: -120px; right: -120px;
-      width: 500px; height: 500px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(200,151,58,0.12) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    .left-panel::after {
-      content: '';
-      position: absolute;
-      bottom: -80px; left: -80px;
-      width: 360px; height: 360px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(74,111,165,0.18) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    .grid-lines {
-      position: absolute; inset: 0;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-      background-size: 60px 60px;
-      pointer-events: none;
-    }
-
-    .accent-bar {
-      width: 48px; height: 4px;
-      background: linear-gradient(90deg, var(--gold), var(--gold-lt));
-      border-radius: 2px;
-      margin-bottom: 32px;
-      animation: slideIn 0.8s ease forwards;
-    }
-
-    .school-badge {
-      display: flex; align-items: center; gap: 14px;
-      margin-bottom: 48px;
-      animation: fadeUp 0.7s ease forwards;
-    }
-
-    .badge-icon {
-      width: 52px; height: 52px;
-      background: linear-gradient(135deg, var(--gold), var(--gold-lt));
-      border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 24px;
-      box-shadow: 0 8px 24px rgba(200,151,58,0.35);
-      flex-shrink: 0;
-    }
-
-    .badge-text .brand {
-      font-family: 'Figtree', sans-serif;
-      font-weight: 700; font-size: 15px;
-      color: var(--white); letter-spacing: -0.2px; line-height: 1.2;
-    }
-
-    .badge-text .tagline {
-      font-size: 11px; font-weight: 500;
-      color: var(--gray-3); text-transform: uppercase;
-      letter-spacing: 1.2px; margin-top: 3px;
-    }
-
-    .hero-headline {
-      font-family: 'Fraunces', serif;
-      font-size: clamp(38px, 4vw, 54px);
-      font-weight: 900; color: var(--white);
-      line-height: 1.08; letter-spacing: -1.5px;
-      margin-bottom: 22px;
-      animation: fadeUp 0.8s 0.1s ease both;
-    }
-
-    .hero-headline .accent { color: var(--gold); font-style: italic; }
-
-    .hero-sub {
-      font-size: 15px; font-weight: 400;
-      color: var(--gray-3); line-height: 1.7;
-      max-width: 380px; margin-bottom: 52px;
-      animation: fadeUp 0.8s 0.2s ease both;
-    }
-
-    .stats-row {
-      display: flex; gap: 0;
-      animation: fadeUp 0.8s 0.3s ease both;
-    }
-
-    .stat {
-      padding: 0 32px 0 0;
-      border-right: 1px solid rgba(255,255,255,0.1);
-      margin-right: 32px;
-    }
-
-    .stat:last-child { border-right: none; margin-right: 0; padding-right: 0; }
-
-    .stat-num {
-      font-family: 'Fraunces', serif;
-      font-size: 32px; font-weight: 700;
-      color: var(--gold); line-height: 1; letter-spacing: -1px;
-    }
-
-    .stat-label {
-      font-size: 11px; font-weight: 600;
-      color: var(--gray-3); text-transform: uppercase;
-      letter-spacing: 1px; margin-top: 5px;
-    }
-
-    .left-caption {
-      position: absolute; bottom: 32px; left: 64px;
-      font-size: 11.5px; color: rgba(255,255,255,0.2);
-      font-weight: 500; letter-spacing: 0.5px;
-    }
-
-    /* ══ RIGHT PANEL ══ */
-    .right-panel {
+    .card {
+      width: 100%;
+      max-width: 440px;
       background: var(--white);
-      display: flex; align-items: center; justify-content: center;
-      padding: 40px 48px; position: relative; overflow-y: auto;
+      border-radius: 20px;
+      padding: 40px 40px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+      animation: fadeUp 0.6s ease both;
     }
-
-    .right-panel::before {
-      content: '';
-      position: absolute; top: 0; left: 0;
-      width: 1px; height: 100%;
-      background: linear-gradient(180deg, transparent, var(--gray-2) 20%, var(--gray-2) 80%, transparent);
-    }
-
-    .card { width: 100%; max-width: 400px; animation: fadeUp 0.6s ease both; }
 
     .tab-row {
       display: flex; background: var(--gray-1);
@@ -905,30 +415,13 @@ $result = $conn->query("SELECT * FROM users");
     .form-view { display: none; }
     .form-view.active { display: block; }
 
-    .form-title {
-      font-family: 'Fraunces', serif;
-      font-size: 28px; font-weight: 700;
-      color: var(--navy); letter-spacing: -0.8px;
-      margin-bottom: 6px; line-height: 1.15;
-    }
-
+    .form-title { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 700; color: var(--navy); letter-spacing: -0.8px; margin-bottom: 6px; line-height: 1.15; }
     .form-sub { font-size: 14px; color: var(--gray-3); margin-bottom: 28px; font-weight: 400; }
 
     .field-group { margin-bottom: 18px; }
-
-    .field-label {
-      display: block; font-size: 11.5px; font-weight: 700;
-      color: var(--gray-4); text-transform: uppercase;
-      letter-spacing: 0.8px; margin-bottom: 8px;
-    }
-
+    .field-label { display: block; font-size: 11.5px; font-weight: 700; color: var(--gray-4); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
     .field-wrap { position: relative; }
-
-    .field-icon {
-      position: absolute; left: 14px; top: 50%;
-      transform: translateY(-50%); font-size: 15px;
-      pointer-events: none; line-height: 1;
-    }
+    .field-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; pointer-events: none; line-height: 1; }
 
     .field-wrap input,
     .field-wrap select {
@@ -947,17 +440,10 @@ $result = $conn->query("SELECT * FROM users");
     }
 
     .field-wrap input::placeholder { color: var(--gray-3); font-weight: 400; }
-
-    .field-wrap select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394A3B8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 14px center;
-      padding-right: 36px;
-    }
+    .field-wrap select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394A3B8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
 
     .field-hint { font-size: 11.5px; color: var(--gray-3); margin-top: 6px; padding-left: 2px; font-weight: 400; }
-
     .field-meta { display: flex; justify-content: flex-end; margin-bottom: 22px; margin-top: -8px; }
-
     .forgot-link { font-size: 13px; color: var(--slate); text-decoration: none; font-weight: 600; transition: color 0.2s; }
     .forgot-link:hover { color: var(--navy); }
 
@@ -971,21 +457,12 @@ $result = $conn->query("SELECT * FROM users");
       position: relative; overflow: hidden; margin-top: 4px;
     }
 
-    .btn-submit::after {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.08), transparent);
-      pointer-events: none;
-    }
-
+    .btn-submit::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.08), transparent); pointer-events: none; }
     .btn-submit:hover { background: var(--navy-3); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(13,27,42,0.25); }
     .btn-submit:active { transform: translateY(0); }
 
     .alert { padding: 12px 16px; border-radius: 9px; font-size: 13.5px; font-weight: 500; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
     .alert-error { background: #FEF2F2; color: var(--danger); border: 1px solid #FECACA; }
-
-    .form-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
-    .form-divider span { font-size: 12px; color: var(--gray-3); font-weight: 500; white-space: nowrap; }
-    .form-divider::before, .form-divider::after { content: ''; flex: 1; height: 1px; background: var(--gray-2); }
 
     .success-splash { display: none; flex-direction: column; align-items: center; text-align: center; padding: 20px 0; }
     .splash-icon-wrap { width: 72px; height: 72px; background: linear-gradient(135deg, #DCFCE7, #BBF7D0); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(22,163,74,0.2); }
@@ -1005,7 +482,7 @@ $result = $conn->query("SELECT * FROM users");
       to   { width: 48px; opacity: 1; }
     }
 
-    #view-register { max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 4px; }
+    #view-register { max-height: calc(100vh - 200px); overflow-y: auto; padding-right: 4px; }
     #view-register::-webkit-scrollbar { width: 4px; }
     #view-register::-webkit-scrollbar-track { background: transparent; }
     #view-register::-webkit-scrollbar-thumb { background: var(--gray-2); border-radius: 2px; }
@@ -1025,17 +502,11 @@ $result = $conn->query("SELECT * FROM users");
     @media (max-width: 768px) {
       .features-grid, .roles-grid, .steps-grid { grid-template-columns: 1fr; }
       .lp-nav-links { display: none; }
-      .page { grid-template-columns: 1fr; }
-      .left-panel { display: none; }
-      .right-panel { padding: 32px 24px; }
+      .card { padding: 32px 24px; }
     }
   </style>
 </head>
 <body>
-
-<!-- ════════════════════════════════════════════
-     LANDING PAGE
-════════════════════════════════════════════ -->
 
 <!-- NAV -->
 <nav class="lp-nav">
@@ -1073,22 +544,10 @@ $result = $conn->query("SELECT * FROM users");
       <div class="hero-stats-card">
         <div class="hsc-label">📊 System Overview</div>
         <div class="hsc-stats">
-          <div class="hsc-stat">
-            <div class="hsc-stat-num">150+</div>
-            <div class="hsc-stat-label">Students</div>
-          </div>
-          <div class="hsc-stat">
-            <div class="hsc-stat-num">20</div>
-            <div class="hsc-stat-label">Classrooms</div>
-          </div>
-          <div class="hsc-stat">
-            <div class="hsc-stat-num">100%</div>
-            <div class="hsc-stat-label">Accuracy</div>
-          </div>
-          <div class="hsc-stat">
-            <div class="hsc-stat-num">Real-time</div>
-            <div class="hsc-stat-label">Notifications</div>
-          </div>
+          <div class="hsc-stat"><div class="hsc-stat-num">150+</div><div class="hsc-stat-label">Students</div></div>
+          <div class="hsc-stat"><div class="hsc-stat-num">20</div><div class="hsc-stat-label">Classrooms</div></div>
+          <div class="hsc-stat"><div class="hsc-stat-num">100%</div><div class="hsc-stat-label">Accuracy</div></div>
+          <div class="hsc-stat"><div class="hsc-stat-num">Real-time</div><div class="hsc-stat-label">Notifications</div></div>
         </div>
         <div class="hsc-divider"></div>
         <div class="hsc-features">
@@ -1109,36 +568,12 @@ $result = $conn->query("SELECT * FROM users");
     <h2 class="section-title">Everything you need<br>to track attendance</h2>
     <p class="section-sub">Built specifically for Inabanga College — a complete solution from check-in to parent notification.</p>
     <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">📋</div>
-        <div class="feature-title">Daily Attendance</div>
-        <div class="feature-desc">Mark students as present, late, or absent with a single click. Attendance records are saved instantly and securely.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔔</div>
-        <div class="feature-title">Instant Notifications</div>
-        <div class="feature-desc">Parents receive automatic email alerts the moment their child is marked absent — no delays, no manual follow-up.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <div class="feature-title">Reports Dashboard</div>
-        <div class="feature-desc">Visual attendance summaries with present, late, and absent counts. Filter by date and export records at any time.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔐</div>
-        <div class="feature-title">Role-based Access</div>
-        <div class="feature-desc">Admins, students, and parents each have their own dashboard with the right tools and information for their role.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📱</div>
-        <div class="feature-title">QR Code Check-in</div>
-        <div class="feature-desc">Students receive a personal QR code upon registration for fast, contactless attendance verification in class.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📅</div>
-        <div class="feature-title">Attendance History</div>
-        <div class="feature-desc">View complete historical records for any student. Identify patterns and flag students at risk of non-compliance.</div>
-      </div>
+      <div class="feature-card"><div class="feature-icon">📋</div><div class="feature-title">Daily Attendance</div><div class="feature-desc">Mark students as present, late, or absent with a single click. Attendance records are saved instantly and securely.</div></div>
+      <div class="feature-card"><div class="feature-icon">🔔</div><div class="feature-title">Instant Notifications</div><div class="feature-desc">Parents receive automatic email alerts the moment their child is marked absent — no delays, no manual follow-up.</div></div>
+      <div class="feature-card"><div class="feature-icon">📊</div><div class="feature-title">Reports Dashboard</div><div class="feature-desc">Visual attendance summaries with present, late, and absent counts. Filter by date and export records at any time.</div></div>
+      <div class="feature-card"><div class="feature-icon">🔐</div><div class="feature-title">Role-based Access</div><div class="feature-desc">Admins, students, and parents each have their own dashboard with the right tools and information for their role.</div></div>
+      <div class="feature-card"><div class="feature-icon">📱</div><div class="feature-title">QR Code Check-in</div><div class="feature-desc">Students receive a personal QR code upon registration for fast, contactless attendance verification in class.</div></div>
+      <div class="feature-card"><div class="feature-icon">📅</div><div class="feature-title">Attendance History</div><div class="feature-desc">View complete historical records for any student. Identify patterns and flag students at risk of non-compliance.</div></div>
     </div>
   </div>
 </section>
@@ -1150,26 +585,10 @@ $result = $conn->query("SELECT * FROM users");
     <h2 class="section-title">Simple. Fast. Reliable.</h2>
     <p class="section-sub" style="margin-bottom:60px;">From registration to real-time alerts in four easy steps.</p>
     <div class="steps-grid">
-      <div class="step-item">
-        <div class="step-num">1</div>
-        <div class="step-title">Register Account</div>
-        <div class="step-desc">Students, parents, and admins create their account and receive role-based access instantly.</div>
-      </div>
-      <div class="step-item">
-        <div class="step-num">2</div>
-        <div class="step-title">Mark Attendance</div>
-        <div class="step-desc">Admin marks each student present, late, or absent for the day from the Attendance page.</div>
-      </div>
-      <div class="step-item">
-        <div class="step-num">3</div>
-        <div class="step-title">Notify Parents</div>
-        <div class="step-desc">The system automatically emails parents when their child is marked absent or late.</div>
-      </div>
-      <div class="step-item">
-        <div class="step-num">4</div>
-        <div class="step-title">Review Reports</div>
-        <div class="step-desc">Admins and parents can view daily and historical attendance records from their dashboard.</div>
-      </div>
+      <div class="step-item"><div class="step-num">1</div><div class="step-title">Register Account</div><div class="step-desc">Students, parents, and admins create their account and receive role-based access instantly.</div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-title">Mark Attendance</div><div class="step-desc">Admin marks each student present, late, or absent for the day from the Attendance page.</div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-title">Notify Parents</div><div class="step-desc">The system automatically emails parents when their child is marked absent or late.</div></div>
+      <div class="step-item"><div class="step-num">4</div><div class="step-title">Review Reports</div><div class="step-desc">Admins and parents can view daily and historical attendance records from their dashboard.</div></div>
     </div>
   </div>
 </section>
@@ -1184,34 +603,19 @@ $result = $conn->query("SELECT * FROM users");
         <div class="role-badge">🛡️ Administrator</div>
         <div class="role-title">Full Control</div>
         <div class="role-desc">Complete oversight of students, attendance records, and system notifications.</div>
-        <ul class="role-perks">
-          <li>Manage all student records</li>
-          <li>Mark and edit attendance daily</li>
-          <li>Send notifications to parents</li>
-          <li>View reports &amp; analytics</li>
-        </ul>
+        <ul class="role-perks"><li>Manage all student records</li><li>Mark and edit attendance daily</li><li>Send notifications to parents</li><li>View reports &amp; analytics</li></ul>
       </div>
       <div class="role-card student-card">
         <div class="role-badge">🎓 Student</div>
         <div class="role-title">Stay Informed</div>
         <div class="role-desc">Students can track their own attendance and view their personal records anytime.</div>
-        <ul class="role-perks">
-          <li>View personal attendance history</li>
-          <li>Receive QR code on registration</li>
-          <li>Check present/absent/late status</li>
-          <li>Update profile information</li>
-        </ul>
+        <ul class="role-perks"><li>View personal attendance history</li><li>Receive QR code on registration</li><li>Check present/absent/late status</li><li>Update profile information</li></ul>
       </div>
       <div class="role-card parent-card">
         <div class="role-badge">👨‍👩‍👧 Parent</div>
         <div class="role-title">Always Aware</div>
         <div class="role-desc">Parents are automatically notified and can monitor their child's attendance anytime.</div>
-        <ul class="role-perks">
-          <li>Instant absence email alerts</li>
-          <li>View child's attendance records</li>
-          <li>Monitor attendance trends</li>
-          <li>Secure parent portal access</li>
-        </ul>
+        <ul class="role-perks"><li>Instant absence email alerts</li><li>View child's attendance records</li><li>Monitor attendance trends</li><li>Secure parent portal access</li></ul>
       </div>
     </div>
   </div>
@@ -1244,148 +648,117 @@ $result = $conn->query("SELECT * FROM users");
   </ul>
 </footer>
 
-<!-- ════════════════════════════════════════════
-     AUTH SECTION (original login / register)
-════════════════════════════════════════════ -->
+<!-- AUTH SECTION — centered card, no left panel -->
 <div id="auth" class="auth-section">
   <div class="page">
+    <div class="card">
 
-    <!-- ══ LEFT PANEL ══ -->
-    <div class="left-panel">
-      <div class="grid-lines"></div>
-      <div class="school-badge">
-        <div class="badge-icon">🎓</div>
-        <div class="badge-text">
-          <div class="brand">Inabanga College of Arts &amp; Sciences</div>
-          <div class="tagline">Attendance &amp; Notification System</div>
-        </div>
+      <!-- TABS -->
+      <div class="tab-row">
+        <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">Sign In</button>
+        <button class="tab-btn" id="tab-register" onclick="switchTab('register')">Register</button>
       </div>
-      <div class="accent-bar"></div>
-      <h1 class="hero-headline">
-        Every student<br>present &amp;<br><span class="accent">accounted for.</span>
-      </h1>
-      <p class="hero-sub">
-        A unified platform for tracking daily attendance, sending real-time notifications to parents, and keeping educators informed — all in one place.
-      </p>
-      <div class="stats-row">
-        <div class="stat"><div class="stat-num">150+</div><div class="stat-label">Students</div></div>
-        <div class="stat"><div class="stat-num">20</div><div class="stat-label">Classrooms</div></div>
-        <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Accuracy</div></div>
-      </div>
-      <div class="left-caption">© 2026 Inabanga College of Arts &amp; Sciences</div>
-    </div>
 
-    <!-- ══ RIGHT PANEL ══ -->
-    <div class="right-panel">
-      <div class="card">
-
-        <!-- TABS -->
-        <div class="tab-row">
-          <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">Sign In</button>
-          <button class="tab-btn" id="tab-register" onclick="switchTab('register')">Register</button>
-        </div>
-
-        <!-- LOGIN FORM -->
-        <div class="form-view active" id="view-login">
-          <?php if (isset($_GET['error']) && !isset($_GET['from_register'])): ?>
-            <div class="alert alert-error">⚠️ <?= htmlspecialchars($_GET['error']) ?></div>
-          <?php endif; ?>
-          <div class="form-title">Welcome back</div>
-          <div class="form-sub">Sign in to your EduTrack account</div>
-          <form action="login.php" method="POST">
-            <div class="field-group">
-              <label class="field-label">Email Address</label>
-              <div class="field-wrap">
-                <span class="field-icon">✉️</span>
-                <input type="email" name="email" placeholder="your@school.edu" required>
-              </div>
+      <!-- LOGIN FORM -->
+      <div class="form-view active" id="view-login">
+        <?php if (isset($_GET['error']) && !isset($_GET['from_register'])): ?>
+          <div class="alert alert-error">⚠️ <?= htmlspecialchars($_GET['error']) ?></div>
+        <?php endif; ?>
+        <div class="form-title">Welcome back</div>
+        <div class="form-sub">Sign in to your EduTrack account</div>
+        <form action="login.php" method="POST">
+          <div class="field-group">
+            <label class="field-label">Email Address</label>
+            <div class="field-wrap">
+              <span class="field-icon">✉️</span>
+              <input type="email" name="email" placeholder="your@school.edu" required>
             </div>
-            <div class="field-group">
-              <label class="field-label">Password</label>
-              <div class="field-wrap">
-                <span class="field-icon">🔒</span>
-                <input type="password" name="password" placeholder="Enter your password" required>
-              </div>
-            </div>
-            <div class="field-meta">
-              <a href="#" class="forgot-link">Forgot password?</a>
-            </div>
-            <button class="btn-submit" type="submit" name="login">Sign In →</button>
-          </form>
-        </div>
-
-        <!-- REGISTER FORM -->
-        <div class="form-view" id="view-register">
-          <?php if (isset($_GET['error'])): ?>
-            <div class="alert alert-error">⚠️ <?= htmlspecialchars($_GET['error']) ?></div>
-          <?php endif; ?>
-          <div class="form-title">Create account</div>
-          <div class="form-sub">Join EduTrack and get started today</div>
-          <form action="register.php" method="POST">
-            <div class="field-group">
-              <label class="field-label">Full Name</label>
-              <div class="field-wrap">
-                <span class="field-icon">👤</span>
-                <input type="text" name="fullname" placeholder="e.g. Maria Santos" required>
-              </div>
-            </div>
-            <div class="field-group">
-              <label class="field-label">Email Address</label>
-              <div class="field-wrap">
-                <span class="field-icon">✉️</span>
-                <input type="email" name="email" placeholder="your@school.edu" required>
-              </div>
-            </div>
-            <div class="field-group">
-              <label class="field-label">Role</label>
-              <div class="field-wrap">
-                <span class="field-icon">🏫</span>
-                <select name="role" id="role-select" required onchange="toggleParentEmail(this.value)">
-                  <option value="">Select your role</option>
-                  <option value="admin">Administrator</option>
-                  <option value="student">Student</option>
-                  <option value="parent">Parent</option>
-                </select>
-              </div>
-            </div>
-            <div class="field-group" id="parent-email-field" style="display:none;">
-              <label class="field-label">Parent Gmail <span style="color:#DC2626;">*</span></label>
-              <div class="field-wrap">
-                <span class="field-icon">📧</span>
-                <input type="email" name="parent_email" id="parent_email" placeholder="parent@gmail.com">
-              </div>
-              <div class="field-hint">Your parent will be notified if you miss attendance.</div>
-            </div>
-            <div class="field-group">
-              <label class="field-label">Password</label>
-              <div class="field-wrap">
-                <span class="field-icon">🔒</span>
-                <input type="password" name="password" placeholder="Create a password" required>
-              </div>
-            </div>
-            <div class="field-group">
-              <label class="field-label">Confirm Password</label>
-              <div class="field-wrap">
-                <span class="field-icon">🔒</span>
-                <input type="password" name="confirm_password" placeholder="Re-enter your password" required>
-              </div>
-            </div>
-            <button type="submit" name="register" class="btn-submit">Create Account →</button>
-          </form>
-        </div>
-
-        <!-- SUCCESS SPLASH -->
-        <div class="success-splash" id="reg-success">
-          <div class="splash-icon-wrap">✅</div>
-          <div class="splash-title">Account Created!</div>
-          <div class="splash-sub">
-            Your account has been registered.<br>
-            Check your email for your QR code,<br>then sign in with your credentials.
           </div>
-          <button class="splash-back" onclick="goToLogin()">← Back to Sign In</button>
-        </div>
-
+          <div class="field-group">
+            <label class="field-label">Password</label>
+            <div class="field-wrap">
+              <span class="field-icon">🔒</span>
+              <input type="password" name="password" placeholder="Enter your password" required>
+            </div>
+          </div>
+          <div class="field-meta">
+            <a href="#" class="forgot-link">Forgot password?</a>
+          </div>
+          <button class="btn-submit" type="submit" name="login">Sign In →</button>
+        </form>
       </div>
+
+      <!-- REGISTER FORM -->
+      <div class="form-view" id="view-register">
+        <?php if (isset($_GET['error'])): ?>
+          <div class="alert alert-error">⚠️ <?= htmlspecialchars($_GET['error']) ?></div>
+        <?php endif; ?>
+        <div class="form-title">Create account</div>
+        <div class="form-sub">Join EduTrack and get started today</div>
+        <form action="register.php" method="POST">
+          <div class="field-group">
+            <label class="field-label">Full Name</label>
+            <div class="field-wrap">
+              <span class="field-icon">👤</span>
+              <input type="text" name="fullname" placeholder="e.g. Maria Santos" required>
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Email Address</label>
+            <div class="field-wrap">
+              <span class="field-icon">✉️</span>
+              <input type="email" name="email" placeholder="your@school.edu" required>
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Role</label>
+            <div class="field-wrap">
+              <span class="field-icon">🏫</span>
+              <select name="role" id="role-select" required onchange="toggleParentEmail(this.value)">
+                <option value="">Select your role</option>
+                <option value="admin">Administrator</option>
+                <option value="student">Student</option>
+                <option value="parent">Parent</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-group" id="parent-email-field" style="display:none;">
+            <label class="field-label">Parent Gmail <span style="color:#DC2626;">*</span></label>
+            <div class="field-wrap">
+              <span class="field-icon">📧</span>
+              <input type="email" name="parent_email" id="parent_email" placeholder="parent@gmail.com">
+            </div>
+            <div class="field-hint">Your parent will be notified if you miss attendance.</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Password</label>
+            <div class="field-wrap">
+              <span class="field-icon">🔒</span>
+              <input type="password" name="password" placeholder="Create a password" required>
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Confirm Password</label>
+            <div class="field-wrap">
+              <span class="field-icon">🔒</span>
+              <input type="password" name="confirm_password" placeholder="Re-enter your password" required>
+            </div>
+          </div>
+          <button type="submit" name="register" class="btn-submit">Create Account →</button>
+        </form>
+      </div>
+
+      <!-- SUCCESS SPLASH -->
+      <div class="success-splash" id="reg-success">
+        <div class="splash-icon-wrap">✅</div>
+        <div class="splash-title">Account Created!</div>
+        <div class="splash-sub">
+          Your account has been registered.<br>
+          Check your email for your QR code,<br>then sign in with your credentials.
+        </div>
+        <button class="splash-back" onclick="goToLogin()">← Back to Sign In</button>
+      </div>
+
     </div>
   </div>
 </div>
@@ -1428,7 +801,6 @@ $result = $conn->query("SELECT * FROM users");
     document.getElementById('reg-success').style.display = 'flex';
   <?php endif; ?>
 
-  // Smooth scroll + offset for fixed nav
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       const target = document.querySelector(a.getAttribute('href'));

@@ -8,7 +8,7 @@ require __DIR__ . '/../vendor/autoload.php';
 function create_mailer(): PHPMailer {
     $mail = new PHPMailer(true);
 
-    $mail->isSMTP();
+    $mail->isSMTP();    
     $mail->Host       = 'smtp.gmail.com';
     $mail->SMTPAuth   = true;
     $mail->Username   = 'denverbentulan87@gmail.com';
