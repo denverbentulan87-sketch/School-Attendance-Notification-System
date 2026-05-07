@@ -281,7 +281,7 @@ body {
 .main {
     margin-left: 245px;
     flex: 1;
-    padding: 32px;
+    padding: 24px 28px;
     min-height: 100vh;
 }
 
@@ -289,7 +289,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 28px;
+    margin-bottom: 20px;
 }
 
 .welcome {
@@ -391,69 +391,68 @@ table tr:hover { background: #f9fafb; }
 
 /* ══════════════════════════════
    PROFILE PAGE STYLES
-   (matches student my_profile tabs)
+   — Compact, full-width, screen-fit
 ══════════════════════════════ */
 .profile-wrapper {
-    max-width: 860px;
-    margin: 0 auto;
+    width: 100%;
 }
 
 /* Hero card */
 .profile-hero {
     background: linear-gradient(135deg, #0f1923 0%, #1a3a28 100%);
-    border-radius: 16px;
-    padding: 32px 36px;
+    border-radius: 14px;
+    padding: 20px 24px;
     display: flex;
     align-items: center;
-    gap: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 8px 24px rgba(15,25,35,0.18);
+    gap: 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 6px 20px rgba(15,25,35,0.15);
 }
 
 .profile-hero-avatar {
-    width: 80px; height: 80px;
+    width: 62px; height: 62px;
     border-radius: 50%;
     background: #1a3a28;
     border: 3px solid #16a34a;
     display: flex; align-items: center; justify-content: center;
-    font-size: 28px; font-weight: 700;
+    font-size: 20px; font-weight: 700;
     color: #4ade80;
     flex-shrink: 0;
-    box-shadow: 0 0 0 6px rgba(22,163,74,0.15);
+    box-shadow: 0 0 0 5px rgba(22,163,74,0.12);
 }
 
 .profile-hero-info { flex: 1; }
 
 .profile-hero-name {
     font-family: 'Sora', sans-serif;
-    font-size: 22px; font-weight: 700;
+    font-size: 18px; font-weight: 700;
     color: #ffffff;
 }
 
 .profile-hero-role {
     display: inline-block;
-    margin-top: 6px;
+    margin-top: 4px;
     background: rgba(22,163,74,0.2);
     color: #4ade80;
-    font-size: 12px; font-weight: 600;
+    font-size: 11px; font-weight: 600;
     letter-spacing: 1.2px; text-transform: uppercase;
-    padding: 4px 12px; border-radius: 20px;
+    padding: 3px 10px; border-radius: 20px;
     border: 1px solid rgba(74,222,128,0.3);
 }
 
 .profile-hero-meta {
-    display: flex; gap: 20px;
-    margin-top: 14px;
+    display: flex; gap: 16px;
+    margin-top: 8px;
     flex-wrap: wrap;
 }
 
 .profile-hero-meta span {
-    font-size: 13px; color: #94a3b8;
-    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: #94a3b8;
+    display: flex; align-items: center; gap: 5px;
 }
 
 .profile-hero-meta svg {
-    width: 14px; height: 14px;
+    width: 13px; height: 13px;
     stroke: #4ade80; fill: none;
     stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
 }
@@ -461,31 +460,31 @@ table tr:hover { background: #f9fafb; }
 /* Tabs */
 .profile-tabs {
     display: flex;
-    gap: 4px;
+    gap: 3px;
     background: #ffffff;
-    border-radius: 12px;
-    padding: 6px;
-    margin-bottom: 20px;
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 14px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .profile-tab {
     flex: 1;
-    padding: 10px 16px;
-    border-radius: 8px;
+    padding: 8px 14px;
+    border-radius: 7px;
     border: none;
     background: transparent;
     color: #64748b;
     font-size: 13px; font-weight: 600;
     cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 7px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
     transition: background 0.15s, color 0.15s;
     font-family: 'DM Sans', sans-serif;
     text-decoration: none;
 }
 
 .profile-tab svg {
-    width: 15px; height: 15px;
+    width: 14px; height: 14px;
     stroke: currentColor; fill: none;
     stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
 }
@@ -506,21 +505,21 @@ table tr:hover { background: #f9fafb; }
 .profile-card {
     background: #ffffff;
     border-radius: 12px;
-    padding: 24px 28px;
+    padding: 18px 22px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
 .profile-card-title {
     font-family: 'Sora', sans-serif;
-    font-size: 15px; font-weight: 700;
+    font-size: 14px; font-weight: 700;
     color: #0f1923;
-    margin-bottom: 18px;
-    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 7px;
 }
 
 .profile-card-title svg {
-    width: 17px; height: 17px;
+    width: 15px; height: 15px;
     stroke: #16a34a; fill: none;
     stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
 }
@@ -528,40 +527,40 @@ table tr:hover { background: #f9fafb; }
 .profile-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 18px;
+    gap: 12px;
 }
 
 .profile-field label {
     display: block;
-    font-size: 11px; font-weight: 600;
+    font-size: 10px; font-weight: 600;
     letter-spacing: 0.8px; text-transform: uppercase;
-    color: #94a3b8; margin-bottom: 5px;
+    color: #94a3b8; margin-bottom: 4px;
 }
 
 .profile-field .field-value {
-    font-size: 14px; font-weight: 500;
+    font-size: 13px; font-weight: 500;
     color: #1e293b;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
-    padding: 10px 14px;
+    padding: 8px 12px;
 }
 
 /* Edit form */
-.profile-form-group { margin-bottom: 16px; }
+.profile-form-group { margin-bottom: 13px; }
 .profile-form-group label {
     display: block;
-    font-size: 12px; font-weight: 600;
+    font-size: 11px; font-weight: 600;
     letter-spacing: 0.6px; text-transform: uppercase;
-    color: #64748b; margin-bottom: 6px;
+    color: #64748b; margin-bottom: 5px;
 }
 .profile-form-group input,
 .profile-form-group select {
     width: 100%;
-    padding: 10px 14px;
+    padding: 9px 12px;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
-    font-size: 14px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-family: 'DM Sans', sans-serif;
     color: #1e293b; background: #f8fafc;
     transition: border 0.15s;
     outline: none;
@@ -577,9 +576,9 @@ table tr:hover { background: #f9fafb; }
     background: #16a34a;
     color: #fff;
     border: none;
-    padding: 11px 28px;
+    padding: 10px 24px;
     border-radius: 8px;
-    font-size: 14px; font-weight: 600;
+    font-size: 13px; font-weight: 600;
     cursor: pointer;
     font-family: 'DM Sans', sans-serif;
     box-shadow: 0 3px 10px rgba(22,163,74,0.3);
@@ -600,17 +599,17 @@ table tr:hover { background: #f9fafb; }
 /* Activity log */
 .activity-item {
     display: flex; align-items: flex-start; gap: 12px;
-    padding: 14px 0;
+    padding: 11px 0;
     border-bottom: 1px solid #f1f5f9;
 }
 .activity-item:last-child { border-bottom: none; }
 .activity-dot {
-    width: 10px; height: 10px; border-radius: 50%;
+    width: 9px; height: 9px; border-radius: 50%;
     background: #16a34a; flex-shrink: 0; margin-top: 4px;
     box-shadow: 0 0 0 3px rgba(22,163,74,0.15);
 }
 .activity-text { font-size: 13px; color: #374151; }
-.activity-time { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+.activity-time { font-size: 11px; color: #94a3b8; margin-top: 1px; }
 
 @media(max-width: 768px){
     .sidebar { display: none; }
@@ -775,11 +774,11 @@ table tr:hover { background: #f9fafb; }
             <div class="profile-wrapper">
 
                 <?php if (!empty($_GET['success'])): ?>
-                <div style="background:#dcfce7;border:1px solid #86efac;color:#166534;padding:12px 18px;border-radius:10px;margin-bottom:16px;font-size:14px;font-weight:500;">
+                <div style="background:#dcfce7;border:1px solid #86efac;color:#166534;padding:10px 16px;border-radius:10px;margin-bottom:12px;font-size:13px;font-weight:500;">
                     ✅ <?= htmlspecialchars($_GET['success']) ?>
                 </div>
                 <?php elseif (!empty($_GET['error'])): ?>
-                <div style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;padding:12px 18px;border-radius:10px;margin-bottom:16px;font-size:14px;font-weight:500;">
+                <div style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;padding:10px 16px;border-radius:10px;margin-bottom:12px;font-size:13px;font-weight:500;">
                     ⚠️ <?= htmlspecialchars($_GET['error']) ?>
                 </div>
                 <?php endif; ?>
@@ -988,4 +987,4 @@ table tr:hover { background: #f9fafb; }
 </div>
 
 </body>
-</html> 
+</html>

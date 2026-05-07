@@ -31,6 +31,7 @@ $countRes = $conn->query("
 while ($c = $countRes->fetch_assoc()) {
     if (isset($counts[$c['status']])) $counts[$c['status']] = (int)$c['cnt'];
 }
+$effectivePresent = $counts['present'] + $counts['late'];
 $total = array_sum($counts);
 
 // ── Parent email notified? ────────────────────────────────────────────────
@@ -223,7 +224,7 @@ function timeAgo($datetime) {
         </div>
         <div class="stat-card green">
             <div class="stat-label">Present</div>
-            <div class="stat-val"><?= $counts['present'] ?></div>
+          <div class="stat-val"><?= $effectivePresent ?></div>
         </div>
         <div class="stat-card amber">
             <div class="stat-label">Late</div>
@@ -241,7 +242,7 @@ function timeAgo($datetime) {
         <div class="icon">📧</div>
         <div>
             Your parent / guardian is notified at <span><?= htmlspecialchars($parentEmail) ?></span>
-            automatically whenever you are marked <strong>late</strong> or <strong>absent</strong>.
+           automatically whenever you are marked <strong>absent</strong>. Late arrivals are considered present.
         </div>
     </div>
     <?php else: ?>
@@ -273,12 +274,12 @@ function timeAgo($datetime) {
 
             $messages = [
                 'present' => 'You were marked <strong>Present</strong> — QR scanned successfully.',
-                'late'    => 'You arrived <strong>Late</strong> — your parent has been notified by email.',
+                'late'    => 'You arrived <strong>Late</strong> but are considered <strong>Present</strong> — your parent has been notified by email.',
                 'absent'  => 'You were recorded as <strong>Absent</strong> — your parent has been notified by email.',
             ];
             $msg = $messages[$status] ?? 'Attendance recorded.';
 
-            $emailSent = ($status !== 'present') && $parentEmail;
+            $emailSent = ($status == 'present') && $parentEmail;
         ?>
         <div class="notif-item <?= $status ?>">
             <div class="notif-icon <?= $status ?>"><?= $icon ?></div>

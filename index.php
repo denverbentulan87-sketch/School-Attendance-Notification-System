@@ -634,19 +634,6 @@ $result = $conn->query("SELECT * FROM users");
   </div>
 </section>
 
-<!-- FOOTER -->
-<footer class="lp-footer">
-  <a class="footer-brand" href="#">
-    <div class="footer-brand-icon">🎓</div>
-    <div class="footer-brand-name">EduTrack SANS</div>
-  </a>
-  <span class="footer-copy">© 2026 Inabanga College of Arts &amp; Sciences. All rights reserved.</span>
-  <ul class="footer-links">
-    <li><a href="#features">Features</a></li>
-    <li><a href="#how-it-works">How It Works</a></li>
-    <li><a href="#auth">Sign In</a></li>
-  </ul>
-</footer>
 
 <!-- AUTH SECTION — centered card, no left panel -->
 <div id="auth" class="auth-section">
