@@ -25,7 +25,7 @@ function redirect_error(string $msg, string $page = 'index.php'): never {
     exit();
 }
 
-function validate_gmail_format(string $email): string|true {
+function validate_gmail_format(string $email): string|bool{
     $email = strtolower(trim($email));
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
