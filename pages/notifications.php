@@ -8,14 +8,26 @@ date_default_timezone_set('Asia/Manila');
 $today = date('Y-m-d');
 
 // ── Stats ──────────────────────────────────────────────────────────────
-$r = $conn->query("
-    SELECT status, COUNT(*) as cnt
-    FROM attendance
-    WHERE scan_date = '$today' AND status IN ('absent','late')
-    GROUP BY status
-");
 $counts = ['absent' => 0, 'late' => 0];
-while ($row = $r->fetch_assoc()) $counts[$row['status']] = (int)$row['cnt'];
+
+// Late: count from attendance table
+$lateRow = $conn->query("
+    SELECT COUNT(*) as cnt FROM attendance
+    WHERE scan_date = '$today' AND status = 'late'
+")->fetch_assoc();
+$counts['late'] = (int)$lateRow['cnt'];
+
+// Absent: students with NO attendance record today (same logic as dashboard)
+$absentRow = $conn->query("
+    SELECT COUNT(*) as cnt FROM users
+    WHERE role = 'student'
+      AND id NOT IN (
+          SELECT DISTINCT student_id FROM attendance
+          WHERE scan_date = '$today'
+            AND status IN ('present', 'on_time', 'late')
+      )
+")->fetch_assoc();
+$counts['absent'] = (int)$absentRow['cnt'];
 
 // Total emails sent = total rows in notifications table
 $totalRow  = $conn->query("SELECT COUNT(*) as total FROM notifications")->fetch_assoc();

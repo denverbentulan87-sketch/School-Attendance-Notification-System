@@ -392,7 +392,6 @@ table.stu-table tbody tr:last-child td { border-bottom: none; }
                     <th>Student</th>
                     <th>Parent Email</th>
                     <th>QR Code</th>
-                    <th>Attendance</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -462,14 +461,6 @@ table.stu-table tbody tr:last-child td { border-bottom: none; }
                     <?php else: ?>
                         <span class="no-qr-badge">&#x26A0; No QR</span>
                     <?php endif; ?>
-                </td>
-
-                <!-- Attendance -->
-                <td>
-                    <div class="att-wrap">
-                        <span class="att-badge att-present">&#x2714; <?= $att['present'] ?></span>
-                        <span class="att-badge att-absent">&#x2716; <?= $att['absent'] ?></span>
-                    </div>
                 </td>
 
                 <!-- Actions -->

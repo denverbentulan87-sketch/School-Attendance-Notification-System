@@ -39,7 +39,7 @@ $formatted_date = date('F d, Y', strtotime($date));
 // Build status WHERE clause for table
 $statusWhere = '';
 if ($statusFilter === 'present') {
-    $statusWhere = "AND attendance.status IN ('present', 'on_time')";
+    $statusWhere = "AND attendance.status IN ('present', 'on_time', 'late')";
 } elseif ($statusFilter === 'late') {
     $statusWhere = "AND attendance.status = 'late'";
 } elseif ($statusFilter === 'absent') {
@@ -237,13 +237,8 @@ if ($statusFilter === 'absent') {
     </div>
     <div class="stat-card green <?= $statusFilter==='present'?'active-filter':'' ?>"
          onclick="applyStatusFilter('present')">
-        <h4>Present</h4>
+        <h4>Present (incl. Late)</h4>
         <div class="stat-value"><?= $present ?></div>
-    </div>
-    <div class="stat-card yellow <?= $statusFilter==='late'?'active-filter':'' ?>"
-         onclick="applyStatusFilter('late')">
-        <h4>Late</h4>
-        <div class="stat-value"><?= $late ?></div>
     </div>
     <div class="stat-card red <?= $statusFilter==='absent'?'active-filter':'' ?>"
          onclick="applyStatusFilter('absent')">
@@ -282,9 +277,7 @@ if ($statusFilter === 'absent') {
                 <a class="stab <?= $statusFilter==='all'    ?'s-all':''     ?>"
                    href="?page=reports&date=<?= $date ?>&status_filter=all">All</a>
                 <a class="stab <?= $statusFilter==='present'?'s-present':'' ?>"
-                   href="?page=reports&date=<?= $date ?>&status_filter=present">✅ Present</a>
-                <a class="stab <?= $statusFilter==='late'   ?'s-late':''    ?>"
-                   href="?page=reports&date=<?= $date ?>&status_filter=late">⏰ Late</a>
+                   href="?page=reports&date=<?= $date ?>&status_filter=present">✅ Present / Late</a>
                 <a class="stab <?= $statusFilter==='absent' ?'s-absent':''  ?>"
                    href="?page=reports&date=<?= $date ?>&status_filter=absent">❌ Absent</a>
             </div>

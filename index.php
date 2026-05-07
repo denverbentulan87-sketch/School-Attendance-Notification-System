@@ -442,6 +442,29 @@ $result = $conn->query("SELECT * FROM users");
     .field-wrap input::placeholder { color: var(--gray-3); font-weight: 400; }
     .field-wrap select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394A3B8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
 
+    /* ── Eye toggle button ── */
+    .pw-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray-3);
+      transition: color 0.2s;
+      line-height: 1;
+    }
+    .pw-toggle:hover { color: var(--gray-4); }
+    .pw-toggle svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* Shift padding right so text doesn't overlap the eye icon */
+    .field-wrap.has-toggle input { padding-right: 44px; }
+
     .field-hint { font-size: 11.5px; color: var(--gray-3); margin-top: 6px; padding-left: 2px; font-weight: 400; }
     .field-meta { display: flex; justify-content: flex-end; margin-bottom: 22px; margin-top: -8px; }
     .forgot-link { font-size: 13px; color: var(--slate); text-decoration: none; font-weight: 600; transition: color 0.2s; }
@@ -663,14 +686,20 @@ $result = $conn->query("SELECT * FROM users");
           </div>
           <div class="field-group">
             <label class="field-label">Password</label>
-            <div class="field-wrap">
+            <div class="field-wrap has-toggle">
               <span class="field-icon">🔒</span>
-              <input type="password" name="password" placeholder="Enter your password" required>
+              <input type="password" name="password" id="login-password" placeholder="Enter your password" required>
+              <button type="button" class="pw-toggle" onclick="togglePw('login-password', this)" aria-label="Toggle password visibility">
+                <svg id="login-password-icon" viewBox="0 0 24 24">
+                  <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
             </div>
           </div>
           <div class="field-meta">
-            <a href="#" class="forgot-link">Forgot password?</a>
-          </div>
+     <a href="#" class="forgot-link" onclick="switchTab('register'); return false;">Don't have an account? <strong>Sign up</strong></a>
+       </div>
           <button class="btn-submit" type="submit" name="login">Sign In →</button>
         </form>
       </div>
@@ -719,16 +748,28 @@ $result = $conn->query("SELECT * FROM users");
           </div>
           <div class="field-group">
             <label class="field-label">Password</label>
-            <div class="field-wrap">
+            <div class="field-wrap has-toggle">
               <span class="field-icon">🔒</span>
-              <input type="password" name="password" placeholder="Create a password" required>
+              <input type="password" name="password" id="reg-password" placeholder="Create a password" required>
+              <button type="button" class="pw-toggle" onclick="togglePw('reg-password', this)" aria-label="Toggle password visibility">
+                <svg id="reg-password-icon" viewBox="0 0 24 24">
+                  <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
             </div>
           </div>
           <div class="field-group">
             <label class="field-label">Confirm Password</label>
-            <div class="field-wrap">
+            <div class="field-wrap has-toggle">
               <span class="field-icon">🔒</span>
-              <input type="password" name="confirm_password" placeholder="Re-enter your password" required>
+              <input type="password" name="confirm_password" id="reg-confirm" placeholder="Re-enter your password" required>
+              <button type="button" class="pw-toggle" onclick="togglePw('reg-confirm', this)" aria-label="Toggle password visibility">
+                <svg id="reg-confirm-icon" viewBox="0 0 24 24">
+                  <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
             </div>
           </div>
           <button type="submit" name="register" class="btn-submit">Create Account →</button>
@@ -751,6 +792,32 @@ $result = $conn->query("SELECT * FROM users");
 </div>
 
 <script>
+  /* ── Password eye toggle ── */
+  function togglePw(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const svg   = btn.querySelector('svg');
+    const isHidden = input.type === 'password';
+
+    input.type = isHidden ? 'text' : 'password';
+
+    // Swap between eye-open and eye-off SVG paths
+    if (isHidden) {
+      // Eye-off (slashed)
+      svg.innerHTML = `
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+        <line x1="1" y1="1" x2="23" y2="23"/>
+      `;
+    } else {
+      // Eye-open
+      svg.innerHTML = `
+        <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/>
+        <circle cx="12" cy="12" r="3"/>
+      `;
+    }
+  }
+
+  /* ── Parent email toggle ── */
   function toggleParentEmail(role) {
     const field = document.getElementById('parent-email-field');
     const input = document.getElementById('parent_email');
@@ -764,6 +831,7 @@ $result = $conn->query("SELECT * FROM users");
     }
   }
 
+  /* ── Tab switching ── */
   function switchTab(tab) {
     ['view-login','view-register'].forEach(id =>
       document.getElementById(id).classList.remove('active'));
@@ -788,6 +856,7 @@ $result = $conn->query("SELECT * FROM users");
     document.getElementById('reg-success').style.display = 'flex';
   <?php endif; ?>
 
+  /* ── Smooth scroll ── */
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       const target = document.querySelector(a.getAttribute('href'));

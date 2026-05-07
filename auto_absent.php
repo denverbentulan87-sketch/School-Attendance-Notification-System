@@ -68,6 +68,15 @@ while ($student = mysqli_fetch_assoc($result)) {
     mysqli_stmt_bind_param($ins, 'iss', $sid, $today, $now_full);
     mysqli_stmt_execute($ins);
 
+    // Save notification to notifications table
+    $notif_msg  = "Your child {$student['fullname']} was marked ABSENT on " . date('F d, Y') . ".";
+    $notif_stmt = mysqli_prepare($conn,
+        "INSERT INTO notifications (student_id, message, created_at, sender, is_read)
+         VALUES (?, ?, ?, 'system', 0)"
+    );
+    mysqli_stmt_bind_param($notif_stmt, "iss", $sid, $notif_msg, $now_full);
+    mysqli_stmt_execute($notif_stmt);
+
     // Send absent notification email to parent
     if (!empty($student['parent_email'])) {
         send_absent_notification(

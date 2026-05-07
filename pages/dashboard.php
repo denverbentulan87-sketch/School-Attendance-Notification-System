@@ -26,10 +26,14 @@ $absentToday = $conn->query("
 $notifications = $conn->query("SELECT COUNT(*) AS total FROM notifications")->fetch_assoc()['total'];
 
 $recent = $conn->query("
-    SELECT users.fullname AS name, attendance.status,
-           attendance.scan_date, attendance.scan_time
-    FROM attendance
-    JOIN users ON users.id = attendance.student_id
+    SELECT users.fullname AS name, 
+           COALESCE(attendance.status, 'absent') AS status,
+           COALESCE(attendance.scan_date, '$today') AS scan_date,
+           COALESCE(attendance.scan_time, '00:00:00') AS scan_time
+    FROM users
+    LEFT JOIN attendance ON attendance.student_id = users.id 
+        AND attendance.scan_date = '$today'
+    WHERE users.role = 'student'
     ORDER BY attendance.scan_date DESC, attendance.scan_time DESC
     LIMIT 5
 ");

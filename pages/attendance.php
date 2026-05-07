@@ -57,12 +57,19 @@ if (!empty($_GET['filter_search'])) {
     $where_parts[] = "users.fullname LIKE '%$filter_search%'";
 }
 
-$where = count($where_parts) ? "WHERE " . implode(" AND ", $where_parts) : "";
+$where = count($where_parts) ? "AND " . implode(" AND ", $where_parts) : "";
+
+$scan_date_filter = !empty($filter_date) ? $filter_date : $today;
 
 $records = $conn->query("
-    SELECT users.fullname, attendance.scan_date, attendance.scan_time, attendance.status
-    FROM attendance
-    JOIN users ON users.id = attendance.student_id
+    SELECT users.fullname,
+           COALESCE(attendance.scan_date, '$scan_date_filter') AS scan_date,
+           COALESCE(attendance.scan_time, '00:00:00') AS scan_time,
+           COALESCE(attendance.status, 'absent') AS status
+    FROM users
+    LEFT JOIN attendance ON attendance.student_id = users.id
+        AND attendance.scan_date = '$scan_date_filter'
+    WHERE users.role = 'student'
     $where
     ORDER BY attendance.scan_date DESC, attendance.scan_time DESC
 ");
