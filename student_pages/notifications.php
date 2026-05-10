@@ -7,8 +7,8 @@ $filter  = $_GET['filter'] ?? 'all';
 
 // ── Fetch student's attendance records as notification feed ──────────────
 $status_filter = '';
-if ($filter === 'absent') $status_filter = "AND a.status = 'absent'";
-if ($filter === 'late')   $status_filter = "AND a.status = 'late'";
+if ($filter === 'absent')  $status_filter = "AND a.status = 'absent'";
+if ($filter === 'late')    $status_filter = "AND a.status = 'late'";
 if ($filter === 'present') $status_filter = "AND a.status = 'present'";
 
 $records = $conn->query("
@@ -40,9 +40,9 @@ $parentEmail = $parentRow['parent_email'] ?? null;
 
 function timeAgo($datetime) {
     $diff = time() - strtotime($datetime);
-    if ($diff < 60)    return "Just now";
-    if ($diff < 3600)  return floor($diff / 60) . " mins ago";
-    if ($diff < 86400) return floor($diff / 3600) . " hrs ago";
+    if ($diff < 60)     return "Just now";
+    if ($diff < 3600)   return floor($diff / 60) . " mins ago";
+    if ($diff < 86400)  return floor($diff / 3600) . " hrs ago";
     if ($diff < 604800) return floor($diff / 86400) . " days ago";
     return date('M d, Y', strtotime($datetime));
 }
@@ -224,7 +224,7 @@ function timeAgo($datetime) {
         </div>
         <div class="stat-card green">
             <div class="stat-label">Present</div>
-          <div class="stat-val"><?= $effectivePresent ?></div>
+            <div class="stat-val"><?= $effectivePresent ?></div>
         </div>
         <div class="stat-card amber">
             <div class="stat-label">Late</div>
@@ -242,7 +242,7 @@ function timeAgo($datetime) {
         <div class="icon">📧</div>
         <div>
             Your parent / guardian is notified at <span><?= htmlspecialchars($parentEmail) ?></span>
-           automatically whenever you are marked <strong>absent</strong>. Late arrivals are considered present.
+            automatically whenever you are marked <strong>absent</strong>. Late arrivals are considered present.
         </div>
     </div>
     <?php else: ?>
@@ -279,7 +279,9 @@ function timeAgo($datetime) {
             ];
             $msg = $messages[$status] ?? 'Attendance recorded.';
 
-            $emailSent = ($status == 'present') && $parentEmail;
+            // FIX: was ($status == 'present') which was backwards —
+            //      email is sent for absent/late, NOT for present
+            $emailSent = ($status !== 'present') && $parentEmail;
         ?>
         <div class="notif-item <?= $status ?>">
             <div class="notif-icon <?= $status ?>"><?= $icon ?></div>

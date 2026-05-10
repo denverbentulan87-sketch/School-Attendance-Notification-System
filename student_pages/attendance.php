@@ -9,9 +9,12 @@ $where = "WHERE student_id='$student_id'";
 if($filter == 'present')      $where .= " AND status='present'";
 elseif($filter == 'absent')   $where .= " AND status='absent'";
 elseif($filter == 'late')     $where .= " AND status='late'";
-if(!empty($search))           $where .= " AND DATE(date_added)='$search'";
+// FIX: was DATE(date_added), now uses scan_date directly
+if(!empty($search))           $where .= " AND scan_date='$search'";
 
-$records = $conn->query("SELECT date_added, status FROM attendance $where ORDER BY date_added DESC");
+// FIX: was "SELECT date_added, status ... ORDER BY date_added DESC"
+//      now uses scan_date + scan_time, consistent with dashboard & notifications
+$records = $conn->query("SELECT scan_date, scan_time, status FROM attendance $where ORDER BY scan_date DESC, scan_time DESC");
 
 $present = $conn->query("SELECT COUNT(*) as total FROM attendance WHERE student_id='$student_id' AND status='present'")->fetch_assoc()['total'];
 $absent  = $conn->query("SELECT COUNT(*) as total FROM attendance WHERE student_id='$student_id' AND status='absent'")->fetch_assoc()['total'];
@@ -473,7 +476,12 @@ else                       { $risk = "HIGH RISK";   $riskClass = "risk-high";   
         <?php if($records->num_rows > 0): ?>
             <?php while($r = $records->fetch_assoc()): ?>
             <tr>
-                <td><?= date('M d, Y — h:i A', strtotime($r['date_added'])) ?></td>
+                <!-- FIX: was date('M d, Y — h:i A', strtotime($r['date_added']))
+                          now uses scan_date + scan_time; absent rows show date only -->
+                <td>
+                    <?= date('M d, Y', strtotime($r['scan_date'])) ?>
+                    <?= $r['status'] !== 'absent' ? '— ' . date('h:i A', strtotime($r['scan_time'])) : '' ?>
+                </td>
                 <td><span class="badge <?= $r['status'] ?>"><?= ucfirst($r['status']) ?></span></td>
             </tr>
             <?php endwhile; ?>
@@ -493,7 +501,6 @@ function toggleAI(){
 
 // ── Summary filter ──
 function filterSummary(status, btn){
-    // Update active tab styling
     document.querySelectorAll('.sum-tab').forEach(t => t.className = 'sum-tab');
     btn.classList.add('active-' + status);
 
@@ -508,7 +515,6 @@ function filterSummary(status, btn){
         Object.values(pills).forEach(p => p.classList.remove('hidden'));
     } else {
         Object.entries(pills).forEach(([key, el]) => {
-            // rate pill always shows alongside whichever status is selected
             if(key === 'rate' || key === status) el.classList.remove('hidden');
             else el.classList.add('hidden');
         });
@@ -522,12 +528,13 @@ function toggleSummary(){
 }
 
 // ── Calendar logic ──
-// Attendance data passed from PHP
+// FIX: was "SELECT date_added, status ..." with date() conversion
+//      now uses scan_date directly (already Y-m-d format)
 const attendanceData = {
     <?php
-    $allRecords = $conn->query("SELECT date_added, status FROM attendance WHERE student_id='$student_id'");
+    $allRecords = $conn->query("SELECT scan_date, status FROM attendance WHERE student_id='$student_id'");
     while($r = $allRecords->fetch_assoc()){
-        $date = date('Y-m-d', strtotime($r['date_added']));
+        $date = $r['scan_date']; // already Y-m-d, no strtotime needed
         echo "'$date': '{$r['status']}',\n";
     }
     ?>

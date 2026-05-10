@@ -275,7 +275,7 @@ if ($total === 0):
             <?php while ($r = $recent->fetch_assoc()): ?>
             <tr>
                 <td><?= date('M d, Y', strtotime($r['scan_date'])) ?></td>
-                <td><?= $r['status'] === 'absent' ? '—' : date('h:i A', strtotime($r['scan_time'])) ?></td>
+               <td><?= (!empty($r['scan_time']) && $r['scan_time'] !== '00:00:00') ? date('h:i A', strtotime($r['scan_time'])) : '—' ?></td>
                 <td>
                     <span class="badge <?= $r['status'] ?>">
                         <?= $r['status'] === 'present' ? '✅' : ($r['status'] === 'late' ? '⚠️' : '❌') ?>

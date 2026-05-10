@@ -1,19 +1,4 @@
 <?php
-/**
- * register.php — School Attendance Notification System
- *
- * EMAIL EXISTENCE VERIFICATION FLOW:
- *  Step 1 (POST register):
- *      Validate form → Generate OTPs → Send to email(s) → Store in session → Redirect to otp_verify.php
- *      If send_otp_email() fails (bounce/bad inbox), we reject immediately.
- *
- *  Step 2 (otp_verify.php):
- *      User types the OTP(s) they received → POST back here with action=verify_otp
- *
- *  Step 3 (action=complete_registration):
- *      OTPs confirmed → Insert into DB → Send QR → Create parent account
- */
-
 session_start();
 include "includes/db.php";
 include "includes/mailer.php";

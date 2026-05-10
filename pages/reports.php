@@ -42,18 +42,19 @@ if ($statusFilter === 'present') {
     $statusWhere = "AND attendance.status IN ('present', 'on_time', 'late')";
 } elseif ($statusFilter === 'late') {
     $statusWhere = "AND attendance.status = 'late'";
-} elseif ($statusFilter === 'absent') {
-    // Only show students who have no present/late/on_time record
-    $statusWhere = '__absent__'; // handled separately below
 }
 
 if ($statusFilter === 'absent') {
+    // FIX: was using NULL AS scan_time — now LEFT JOINs attendance to get actual scan_time
+    // for students who scanned but were marked absent (scanned in 12PM–5PM window)
     $records = $conn->query("
         SELECT users.fullname,
-               'absent' AS status,
-               '$date'  AS scan_date,
-               NULL     AS scan_time
+               COALESCE(attendance.status, 'absent') AS status,
+               '$date' AS scan_date,
+               attendance.scan_time
         FROM users
+        LEFT JOIN attendance ON attendance.student_id = users.id
+            AND attendance.scan_date = '$date'
         WHERE users.role = 'student'
           AND users.id NOT IN (
               SELECT DISTINCT student_id
@@ -316,9 +317,11 @@ if ($statusFilter === 'absent') {
                     <?= date('M d, Y', strtotime($r['scan_date'])) ?>
                 </td>
                 <td style="color:#64748b;font-size:13px;">
-                    <?= ($s === 'absent' || empty($r['scan_time']) || $r['scan_time'] === '00:00:00')
-                        ? '—'
-                        : date('g:i A', strtotime($r['scan_time'])); ?>
+                    <!-- FIX: removed $s === 'absent' condition that was forcing '—' for absent records -->
+                    <!-- Now shows actual scan time if it exists, regardless of status -->
+                    <?= (!empty($r['scan_time']) && $r['scan_time'] !== '00:00:00')
+                        ? date('g:i A', strtotime($r['scan_time']))
+                        : '—' ?>
                 </td>
             </tr>
         <?php endwhile; ?>

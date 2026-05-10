@@ -16,7 +16,11 @@ function create_mailer(): PHPMailer {
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Port       = 587;
 
-    $mail->setFrom('denverbentulan87@gmail.com', 'School Attendance System');
+    // ✅ ADD THESE TWO LINES:
+    $mail->CharSet  = PHPMailer::CHARSET_UTF8;
+    $mail->Encoding = 'base64';
+
+    $mail->setFrom('denverbentulan87@gmail.com', 'School Attendance and Notification System');
     return $mail;
 }
 
@@ -198,7 +202,7 @@ function send_otp_email(string $to, string $name, string $otp): bool {
         $mail = create_mailer();
         $mail->addAddress($to, $name);
         $mail->isHTML(true);
-        $mail->Subject = 'Your Verification Code — School Attendance System';
+        $mail->Subject = 'Your Verification Code — School Attendance and Notification System';
         $mail->Body    = "
             <div style='font-family:sans-serif;max-width:480px;margin:auto;padding:32px;
                         border:1px solid #e2e8f0;border-radius:12px;'>
@@ -216,7 +220,7 @@ function send_otp_email(string $to, string $name, string $otp): bool {
                 <p style='color:#a0aec0;font-size:13px;margin-top:24px;'>
                     If you did not request this, you can safely ignore this email.
                 </p>
-                <p style='color:#7f8c8d;font-size:13px;'>— School Attendance System</p>
+                <p style='color:#7f8c8d;font-size:13px;'>— School Attendance System and Notification System</p>
             </div>
         ";
         $mail->AltBody = "Hello {$name}, your verification code is: {$otp} (expires in 10 minutes)";
@@ -241,7 +245,7 @@ function send_parent_welcome_email(
         $mail = create_mailer();
         $mail->addAddress($parent_email, $parent_name);
         $mail->isHTML(true);
-        $mail->Subject = 'Your Parent Account — School Attendance System';
+        $mail->Subject = 'Your Parent Account — School Attendance and Notification System';
         $mail->Body    = "
             <div style='font-family:sans-serif;max-width:500px;margin:auto;padding:32px;
                         border:1px solid #e2e8f0;border-radius:12px;'>
@@ -260,7 +264,7 @@ function send_parent_welcome_email(
                     </tr>
                 </table>
                 <p style='color:#e74c3c;'>Please log in and change your password immediately.</p>
-                <p style='color:#7f8c8d;font-size:13px;'>— School Attendance System</p>
+                <p style='color:#7f8c8d;font-size:13px;'>— School Attendance and Notification System</p>
             </div>
         ";
         $mail->AltBody = "Welcome {$parent_name}! Login: {$parent_email} / Temp password: {$temp_password}. Please change it after logging in.";
@@ -298,12 +302,12 @@ function send_attendance_notification(
         $mail->isHTML(true);
 
         if ($status === 'present') {
-            $mail->Subject = "✅ {$student_name} has arrived at school";
+            $mail->Subject = "✅ {$student_name} has arrived at school today";
             $color         = '#16a34a';
             $label         = 'Present';
             $note          = '';
         } else {
-            $mail->Subject = "⚠️ {$student_name} arrived late at school";
+            $mail->Subject = "⚠️ {$student_name} arrived late at school today";
             $color         = '#d97706';
             $label         = 'Late';
             $note          = "
@@ -355,7 +359,7 @@ function send_attendance_notification(
                 {$note}
 
                 <p style='color:#94a3b8;font-size:12px;text-align:center;margin:24px 0 0;'>
-                    — School Attendance System (EduTrack)
+                    — School Attendance and Notification System (EduTrack)-
                 </p>
             </div>
         ";
@@ -426,7 +430,7 @@ function send_absent_notification(
                 </div>
 
                 <p style='color:#94a3b8;font-size:12px;text-align:center;margin:0;'>
-                    — School Attendance System (EduTrack)
+                    — School Attendance and Notification System (EduTrack)
                 </p>
             </div>
         ";

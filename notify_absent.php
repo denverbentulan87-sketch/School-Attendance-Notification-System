@@ -4,6 +4,16 @@ date_default_timezone_set('Asia/Manila');
 include "includes/db.php";
 include "includes/mailer.php";
 
+// ✅ Only run after 5:00 PM
+$cutoff_hour  = 17;
+$current_hour = (int) date('G');
+
+if ($current_hour < $cutoff_hour) {
+    $run_after = date('h:i A', mktime($cutoff_hour, 0, 0));
+    echo "Too early. Absent marking only runs after {$run_after}. Current time: " . date('h:i A') . "\n";
+    exit();
+}
+
 $today        = date('Y-m-d');
 $date_display = date('F j, Y');
 
@@ -26,14 +36,12 @@ $result = mysqli_stmt_get_result($stmt);
 $notified = 0;
 
 while ($student = mysqli_fetch_assoc($result)) {
-    // Insert absent record so reports stay complete
     $insert   = "INSERT IGNORE INTO attendance (student_id, scan_date, scan_time, status, date_added)
                  VALUES (?, ?, '00:00:00', 'absent', NOW())";
     $ins_stmt = mysqli_prepare($conn, $insert);
     mysqli_stmt_bind_param($ins_stmt, "is", $student['id'], $today);
     mysqli_stmt_execute($ins_stmt);
 
-    // Notify parent
     send_absent_notification(
         $student['parent_email'],
         $student['fullname']

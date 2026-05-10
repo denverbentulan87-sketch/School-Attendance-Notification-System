@@ -27,7 +27,6 @@ if (!$student) {
     exit();
 }
 
-// Re-declare time variables here (after timezone is set) to ensure accuracy
 $today    = date('Y-m-d');
 $now_time = date('H:i:s');
 $now_full = date('Y-m-d H:i:s');
@@ -54,43 +53,77 @@ if (mysqli_num_rows($existing) > 0) {
 // Attendance logic:
 //   Present : 8:00 AM – 8:10 AM
 //   Late    : 8:11 AM – 11:59 AM
-//   Rejected: 12:00 PM and beyond (auto_absent.php handles it)
+//   Absent  : 12:01 PM – 4:59 PM  ← NEW: save + notify immediately
+//   Closed  : 5:00 PM+            ← notify_absent.php handles no-scan students
 // -------------------------------------------------------
 $now_hour    = (int)date('H');
 $now_min     = (int)date('i');
 $now_minutes = $now_hour * 60 + $now_min;
 
-$present_start = 8 * 60;       // 480 → 8:00 AM
-$present_end   = 8 * 60 + 10;  // 490 → 8:10 AM
-$late_end      = 12 * 60 - 1;  // 719 → 11:59 AM
+$present_start = 8  * 60;        // 480  → 8:00 AM
+$present_end   = 8  * 60 + 10;   // 490  → 8:10 AM
+$late_end      = 11 * 60 + 59;   // 719  → 11:59 AM
+$absent_end    = 17 * 60 - 1;    // 1019 → 4:59 PM
 
 if ($now_minutes >= $present_start && $now_minutes <= $present_end) {
     $status = 'present';
+
 } elseif ($now_minutes > $present_end && $now_minutes <= $late_end) {
     $status = 'late';
+
+} elseif ($now_minutes > $late_end && $now_minutes <= $absent_end) {
+    // 12:01 PM – 4:59 PM → mark absent immediately and notify parent
+    $status = 'absent';
+
+    // Insert absent record with actual scan time
+    $insert = "INSERT INTO attendance (student_id, scan_date, scan_time, status, date_added)
+               VALUES (?, ?, ?, 'absent', ?)";
+    $stmt   = mysqli_prepare($conn, $insert);
+    mysqli_stmt_bind_param($stmt, "isss", $student['id'], $today, $now_time, $now_full);
+    mysqli_stmt_execute($stmt);
+
+    // Log notification
+    $notif_msg  = "Your child {$student['fullname']} was marked ABSENT at " . date('h:i A') . ".";
+    $notif_stmt = mysqli_prepare($conn,
+        "INSERT INTO notifications (student_id, message, created_at, sender, is_read)
+         VALUES (?, ?, ?, 'system', 0)"
+    );
+    mysqli_stmt_bind_param($notif_stmt, "iss", $student['id'], $notif_msg, $now_full);
+    mysqli_stmt_execute($notif_stmt);
+
+    // Send absent notification to parent immediately
+    if (!empty($student['parent_email'])) {
+        send_absent_notification(
+            $student['parent_email'],
+            $student['fullname']
+        );
+    }
+
+    echo json_encode([
+        'status'       => 'success',
+        'student_name' => $student['fullname'],
+        'att_status'   => 'absent',
+    ]);
+    exit();
+
 } else {
-    // 12:00 PM or later — scanner closed
+    // 5:00 PM+ — scanner closed, notify_absent.php handles no-scan students
     echo json_encode([
         'status'       => 'error',
         'student_name' => $student['fullname'],
-        'message'      => 'Scanner closed. This student will be marked absent automatically.',
+        'message'      => 'Scanner closed. Absent notifications will be sent automatically at 5:00 PM.',
     ]);
     exit();
 }
 
-// Safety net — should never be blank after the checks above
-if (empty($status)) {
-    $status = 'late';
-}
-
-// Insert the attendance record
+// Insert present/late attendance record
 $insert = "INSERT INTO attendance (student_id, scan_date, scan_time, status, date_added)
            VALUES (?, ?, ?, ?, ?)";
 $stmt   = mysqli_prepare($conn, $insert);
 mysqli_stmt_bind_param($stmt, "issss", $student['id'], $today, $now_time, $status, $now_full);
 mysqli_stmt_execute($stmt);
 
-// Save notification to the notifications table
+// Log notification
 $notif_msg  = "Your child {$student['fullname']} was marked " . strtoupper($status) . " at " . date('h:i A', strtotime($now_time)) . ".";
 $notif_stmt = mysqli_prepare($conn,
     "INSERT INTO notifications (student_id, message, created_at, sender, is_read)
@@ -99,7 +132,7 @@ $notif_stmt = mysqli_prepare($conn,
 mysqli_stmt_bind_param($notif_stmt, "iss", $student['id'], $notif_msg, $now_full);
 mysqli_stmt_execute($notif_stmt);
 
-// Send present/late notification email to parent
+// Send present/late notification to parent
 if (!empty($student['parent_email'])) {
     send_attendance_notification(
         $student['parent_email'],

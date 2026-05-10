@@ -360,7 +360,7 @@ foreach ($data_rows as $r) {
                 </td>
                 <td><?= date('M d, Y', strtotime($row['scan_date'])) ?></td>
                 <td class="time-col">
-                    <?= ($row['status'] !== 'absent' && !empty($row['scan_time'])) ? date('h:i A', strtotime($row['scan_time'])) : '—' ?>
+                   <td><?= (!empty($r['scan_time']) && $r['scan_time'] !== '00:00:00') ? date('h:i A', strtotime($r['scan_time'])) : '—' ?></td>
                 </td>
             </tr>
             <?php endforeach; ?>
