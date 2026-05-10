@@ -1,7 +1,12 @@
-<?php
-session_start();
-
-if(!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin'){
+ <?php
+    session_start();
+ 
+    // ── Prevent browser caching: back button won't restore dashboard ──
+    header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+    header("Pragma: no-cache");
+    header("Expires: Sat, 01 Jan 2000 00:00:00 GMT");
+ 
+    if(!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin'){
     header("Location: index.php");
     exit();
 }
@@ -151,7 +156,6 @@ body {
     z-index: 100;
 }
 
-/* Brand */
 .sidebar-brand {
     padding: 24px 20px 20px;
     border-bottom: 1px solid #1e2d3d;
@@ -187,14 +191,12 @@ body {
     text-transform: uppercase; margin-top: 2px;
 }
 
-/* Section label */
 .sidebar-section-label {
     font-size: 10px; font-weight: 600;
     letter-spacing: 1.5px; text-transform: uppercase;
     color: #3d5166; padding: 20px 20px 8px;
 }
 
-/* Nav items */
 .nav a {
     display: flex; align-items: center; gap: 12px;
     padding: 11px 18px; margin: 2px 10px;
@@ -207,11 +209,9 @@ body {
 
 .nav a:hover { background: #1a2b3c; color: #c2d4e2; }
 .nav a:hover .nav-icon svg { stroke: #c2d4e2; }
-
 .nav a.active { background: #0d3321; color: #4ade80; }
 .nav a.active .nav-icon svg { stroke: #4ade80; }
 
-/* Active left accent bar */
 .nav a.active::before {
     content: '';
     position: absolute; left: -10px; top: 50%; transform: translateY(-50%);
@@ -234,7 +234,6 @@ body {
 
 .sidebar-divider { height: 1px; background: #1e2d3d; margin: 10px 20px; }
 
-/* Footer */
 .sidebar-footer {
     margin-top: auto;
     padding: 16px 20px;
@@ -391,93 +390,94 @@ table tr:hover { background: #f9fafb; }
 
 /* ══════════════════════════════
    PROFILE PAGE STYLES
-   — Compact, full-width, screen-fit
 ══════════════════════════════ */
 .profile-wrapper {
     width: 100%;
+    max-width: 100%;
 }
 
 /* Hero card */
 .profile-hero {
     background: linear-gradient(135deg, #0f1923 0%, #1a3a28 100%);
-    border-radius: 14px;
-    padding: 20px 24px;
+    border-radius: 16px;
+    padding: 30px 32px;
     display: flex;
     align-items: center;
-    gap: 18px;
-    margin-bottom: 14px;
-    box-shadow: 0 6px 20px rgba(15,25,35,0.15);
+    gap: 24px;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 24px rgba(15,25,35,0.18);
 }
 
 .profile-hero-avatar {
-    width: 62px; height: 62px;
+    width: 80px; height: 80px;
     border-radius: 50%;
     background: #1a3a28;
     border: 3px solid #16a34a;
     display: flex; align-items: center; justify-content: center;
-    font-size: 20px; font-weight: 700;
+    font-size: 26px; font-weight: 700;
     color: #4ade80;
     flex-shrink: 0;
-    box-shadow: 0 0 0 5px rgba(22,163,74,0.12);
+    box-shadow: 0 0 0 6px rgba(22,163,74,0.15);
 }
 
 .profile-hero-info { flex: 1; }
 
 .profile-hero-name {
     font-family: 'Sora', sans-serif;
-    font-size: 18px; font-weight: 700;
+    font-size: 24px; font-weight: 700;
     color: #ffffff;
 }
 
 .profile-hero-role {
     display: inline-block;
-    margin-top: 4px;
+    margin-top: 5px;
     background: rgba(22,163,74,0.2);
     color: #4ade80;
-    font-size: 11px; font-weight: 600;
-    letter-spacing: 1.2px; text-transform: uppercase;
-    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 4px 14px; border-radius: 20px;
     border: 1px solid rgba(74,222,128,0.3);
 }
 
 .profile-hero-meta {
-    display: flex; gap: 16px;
-    margin-top: 8px;
+    display: flex; gap: 20px;
+    margin-top: 10px;
     flex-wrap: wrap;
 }
 
 .profile-hero-meta span {
-    font-size: 12px; color: #94a3b8;
-    display: flex; align-items: center; gap: 5px;
+    font-size: 13px; color: #94a3b8;
+    display: flex; align-items: center; gap: 6px;
 }
 
 .profile-hero-meta svg {
     width: 13px; height: 13px;
     stroke: #4ade80; fill: none;
     stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    flex-shrink: 0;
 }
 
 /* Tabs */
 .profile-tabs {
     display: flex;
-    gap: 3px;
+    gap: 4px;
     background: #ffffff;
-    border-radius: 10px;
-    padding: 4px;
-    margin-bottom: 14px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-radius: 12px;
+    padding: 5px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
 }
 
 .profile-tab {
     flex: 1;
-    padding: 8px 14px;
-    border-radius: 7px;
+    padding: 11px 16px;
+    border-radius: 9px;
     border: none;
     background: transparent;
     color: #64748b;
-    font-size: 13px; font-weight: 600;
+    font-size: 13.5px; font-weight: 600;
     cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 6px;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
     transition: background 0.15s, color 0.15s;
     font-family: 'DM Sans', sans-serif;
     text-decoration: none;
@@ -487,6 +487,7 @@ table tr:hover { background: #f9fafb; }
     width: 14px; height: 14px;
     stroke: currentColor; fill: none;
     stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    flex-shrink: 0;
 }
 
 .profile-tab:hover { background: #f1f5f9; color: #0f172a; }
@@ -494,77 +495,84 @@ table tr:hover { background: #f9fafb; }
 .profile-tab.active {
     background: #16a34a;
     color: #ffffff;
-    box-shadow: 0 3px 10px rgba(22,163,74,0.3);
+    box-shadow: 0 4px 12px rgba(22,163,74,0.3);
 }
-
-/* Tab panels */
-.profile-panel { display: none; }
-.profile-panel.active { display: block; }
 
 /* Info card */
 .profile-card {
     background: #ffffff;
-    border-radius: 12px;
-    padding: 18px 22px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    margin-bottom: 14px;
+    border-radius: 14px;
+    padding: 28px 32px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 18px;
+    width: 100%;
 }
 
 .profile-card-title {
     font-family: 'Sora', sans-serif;
-    font-size: 14px; font-weight: 700;
+    font-size: 16px; font-weight: 700;
     color: #0f1923;
-    margin-bottom: 14px;
-    display: flex; align-items: center; gap: 7px;
+    margin-bottom: 22px;
+    display: flex; align-items: center; gap: 8px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #f1f5f9;
 }
 
 .profile-card-title svg {
     width: 15px; height: 15px;
     stroke: #16a34a; fill: none;
     stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    flex-shrink: 0;
 }
 
 .profile-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 18px;
 }
+
+.profile-field { width: 100%; }
 
 .profile-field label {
     display: block;
-    font-size: 10px; font-weight: 600;
-    letter-spacing: 0.8px; text-transform: uppercase;
-    color: #94a3b8; margin-bottom: 4px;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: #94a3b8; margin-bottom: 6px;
 }
 
 .profile-field .field-value {
-    font-size: 13px; font-weight: 500;
+    font-size: 14px; font-weight: 500;
     color: #1e293b;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 8px 12px;
+    border-radius: 10px;
+    padding: 12px 16px;
+    width: 100%;
+    display: block;
 }
 
 /* Edit form */
-.profile-form-group { margin-bottom: 13px; }
+.profile-form-group { margin-bottom: 16px; width: 100%; }
+
 .profile-form-group label {
     display: block;
-    font-size: 11px; font-weight: 600;
-    letter-spacing: 0.6px; text-transform: uppercase;
-    color: #64748b; margin-bottom: 5px;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    color: #64748b; margin-bottom: 6px;
 }
+
 .profile-form-group input,
 .profile-form-group select {
     width: 100%;
-    padding: 9px 12px;
+    padding: 12px 16px;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 13px; font-family: 'DM Sans', sans-serif;
+    border-radius: 10px;
+    font-size: 14px; font-family: 'DM Sans', sans-serif;
     color: #1e293b; background: #f8fafc;
     transition: border 0.15s;
     outline: none;
 }
+
 .profile-form-group input:focus,
 .profile-form-group select:focus {
     border-color: #16a34a;
@@ -576,14 +584,16 @@ table tr:hover { background: #f9fafb; }
     background: #16a34a;
     color: #fff;
     border: none;
-    padding: 10px 24px;
-    border-radius: 8px;
-    font-size: 13px; font-weight: 600;
+    padding: 12px 32px;
+    border-radius: 10px;
+    font-size: 14px; font-weight: 600;
     cursor: pointer;
     font-family: 'DM Sans', sans-serif;
-    box-shadow: 0 3px 10px rgba(22,163,74,0.3);
+    box-shadow: 0 4px 12px rgba(22,163,74,0.3);
     transition: background 0.15s, transform 0.1s;
+    margin-top: 6px;
 }
+
 .profile-save-btn:hover { background: #15803d; transform: translateY(-1px); }
 
 /* Password strength */
@@ -598,29 +608,41 @@ table tr:hover { background: #f9fafb; }
 
 /* Activity log */
 .activity-item {
-    display: flex; align-items: flex-start; gap: 12px;
-    padding: 11px 0;
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 0;
     border-bottom: 1px solid #f1f5f9;
 }
 .activity-item:last-child { border-bottom: none; }
+
 .activity-dot {
-    width: 9px; height: 9px; border-radius: 50%;
-    background: #16a34a; flex-shrink: 0; margin-top: 4px;
-    box-shadow: 0 0 0 3px rgba(22,163,74,0.15);
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #16a34a; flex-shrink: 0; margin-top: 5px;
+    box-shadow: 0 0 0 4px rgba(22,163,74,0.15);
 }
-.activity-text { font-size: 13px; color: #374151; }
-.activity-time { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+
+.activity-text { font-size: 14px; color: #374151; font-weight: 500; }
+.activity-time { font-size: 12px; color: #94a3b8; margin-top: 2px; }
 
 @media(max-width: 768px){
     .sidebar { display: none; }
     .main    { margin-left: 0; }
     .profile-grid { grid-template-columns: 1fr; }
     .profile-tabs { flex-wrap: wrap; }
+    .profile-hero { flex-direction: column; text-align: center; }
+    .profile-card { padding: 20px 16px; }
 }
 </style>
 </head>
 
 <body>
+    <script>
+  if (history.replaceState) {
+    history.replaceState(null, null, window.location.href);
+  }
+  window.addEventListener('pageshow', function(e) {
+    if (e.persisted) { window.location.reload(); }
+  });
+</script>
 
 <!-- ══ SIDEBAR ══ -->
 <div class="sidebar">
@@ -709,7 +731,6 @@ table tr:hover { background: #f9fafb; }
             Reports
         </a>
 
-        <!-- ── MY PROFILE (added below Reports) ── -->
         <a href="admin_dashboard.php?page=profile"
            class="<?= $page === 'profile' ? 'active' : '' ?>">
             <span class="nav-icon">
@@ -768,7 +789,6 @@ table tr:hover { background: #f9fafb; }
             include 'pages/reports.php';
             break;
         case 'profile':
-            // ── INLINE PROFILE PAGE ──────────────────────────────
             $activeTab = $_GET['tab'] ?? 'info';
             ?>
             <div class="profile-wrapper">
@@ -811,12 +831,12 @@ table tr:hover { background: #f9fafb; }
                 <!-- Tabs -->
                 <div class="profile-tabs">
                     <a href="?page=profile&tab=info"
-                       class="profile-tab <?= $activeTab === 'info'     ? 'active' : '' ?>">
+                       class="profile-tab <?= $activeTab === 'info' ? 'active' : '' ?>">
                         <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                         Personal Info
                     </a>
                     <a href="?page=profile&tab=edit"
-                       class="profile-tab <?= $activeTab === 'edit'     ? 'active' : '' ?>">
+                       class="profile-tab <?= $activeTab === 'edit' ? 'active' : '' ?>">
                         <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                         Edit Profile
                     </a>
@@ -909,23 +929,25 @@ table tr:hover { background: #f9fafb; }
                         <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                         Change Password
                     </div>
-                    <form method="POST" action="admin_dashboard.php" style="max-width:480px;">
+                    <form method="POST" action="admin_dashboard.php">
                         <input type="hidden" name="_action" value="update_password">
-                        <div class="profile-form-group">
-                            <label>Current Password</label>
-                            <input type="password" name="current_password" required placeholder="Enter current password">
-                        </div>
-                        <div class="profile-form-group">
-                            <label>New Password</label>
-                            <input type="password" name="new_password" id="newPw" required placeholder="Enter new password"
-                                   oninput="updateStrength(this.value)">
-                            <div class="pw-strength-bar">
-                                <div class="pw-strength-fill" id="strengthFill"></div>
+                        <div class="profile-grid">
+                            <div class="profile-form-group">
+                                <label>Current Password</label>
+                                <input type="password" name="current_password" required placeholder="Enter current password">
                             </div>
-                        </div>
-                        <div class="profile-form-group">
-                            <label>Confirm New Password</label>
-                            <input type="password" name="confirm_password" required placeholder="Confirm new password">
+                            <div class="profile-form-group">
+                                <label>New Password</label>
+                                <input type="password" name="new_password" id="newPw" required placeholder="Enter new password"
+                                       oninput="updateStrength(this.value)">
+                                <div class="pw-strength-bar">
+                                    <div class="pw-strength-fill" id="strengthFill"></div>
+                                </div>
+                            </div>
+                            <div class="profile-form-group">
+                                <label>Confirm New Password</label>
+                                <input type="password" name="confirm_password" required placeholder="Confirm new password">
+                            </div>
                         </div>
                         <button type="submit" class="profile-save-btn">Update Password</button>
                     </form>
@@ -953,7 +975,6 @@ table tr:hover { background: #f9fafb; }
                         Recent Activity
                     </div>
                     <?php
-                    /* Replace with real DB query when ready */
                     $activities = [
                         ['action' => 'Logged in to Admin Portal',        'time' => 'Just now'],
                         ['action' => 'Viewed Reports Dashboard',          'time' => '5 mins ago'],

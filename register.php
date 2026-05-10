@@ -6,11 +6,23 @@ include "includes/mailer.php";
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function redirect_error(string $msg, string $page = 'index.php'): never {
-    header("Location: {$page}?error=" . urlencode($msg));
+    if ($page === 'index.php') {
+        // Pass tab=register so index.php opens the Register tab.
+        // Also pass back old field values so the user doesn't lose their input.
+        $old = '';
+        foreach (['fullname','email','role','parent_email'] as $field) {
+            if (!empty($_POST[$field])) {
+                $old .= '&old_' . $field . '=' . urlencode($_POST[$field]);
+            }
+        }
+        header("Location: index.php?tab=register&error=" . urlencode($msg) . $old . "#auth");
+    } else {
+        header("Location: {$page}?error=" . urlencode($msg));
+    }
     exit();
 }
 
-function validate_gmail_format(string $email): string|bool{
+function validate_gmail_format(string $email): string|bool {
     $email = strtolower(trim($email));
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -185,7 +197,6 @@ if (($_GET['action'] ?? '') === 'complete_registration') {
         $scan_url = "http://localhost/School-Attendance-Notification-System/scan.php?token=" . $qr_token;
         $api_url  = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" . urlencode($scan_url);
 
-        // Save QR image locally so my_qr.php can always display it reliably
         $qr_dir = __DIR__ . '/qrcodes/';
         if (!is_dir($qr_dir)) {
             mkdir($qr_dir, 0755, true);
@@ -194,7 +205,7 @@ if (($_GET['action'] ?? '') === 'complete_registration') {
         $qr_img_data = file_get_contents($api_url);
         file_put_contents($qr_dir . $qr_filename, $qr_img_data);
 
-        $qr_code = 'qrcodes/' . $qr_filename; // relative path stored in DB
+        $qr_code = 'qrcodes/' . $qr_filename;
     }
 
     // Insert user
@@ -210,9 +221,8 @@ if (($_GET['action'] ?? '') === 'complete_registration') {
         redirect_error("Registration failed. Please try again.");
     }
 
-    // ── Send QR email using local file path so image is embedded, not hotlinked ──
     if ($role === 'student') {
-        $qr_local_path = __DIR__ . '/' . $qr_code; // absolute path to saved PNG
+        $qr_local_path = __DIR__ . '/' . $qr_code;
         send_qr_email($email, $fullname, $qr_local_path);
     }
 
@@ -240,7 +250,7 @@ if (($_GET['action'] ?? '') === 'complete_registration') {
     }
 
     unset($_SESSION['pending_registration']);
-    header("Location: index.php?success=registered");
+    header("Location: index.php?success=registered#auth");
     exit();
 }
 ?>

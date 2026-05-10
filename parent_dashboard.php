@@ -1,8 +1,13 @@
 <?php
-session_start();
-include 'includes/db.php';
-
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'parent') {
+    session_start();
+ 
+    // ── Prevent browser caching: back button won't restore dashboard ──
+    header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+    header("Pragma: no-cache");
+    header("Expires: Sat, 01 Jan 2000 00:00:00 GMT");
+ 
+    if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'parent') {
+ 
     header("Location: index.php");
     exit();
 }
@@ -290,6 +295,15 @@ table tbody tr:hover td { background: #f9fafb; }
 </style>
 </head>
 <body>
+    
+<script>
+  if (history.replaceState) {
+    history.replaceState(null, null, window.location.href);
+  }
+  window.addEventListener('pageshow', function(e) {
+    if (e.persisted) { window.location.reload(); }
+  });
+</script>
 
 <!-- ══ SIDEBAR ══ -->
 <div class="sidebar">

@@ -1,14 +1,16 @@
 <?php
-// Prevent caching — browser cannot restore this page
+// ── Prevent browser from caching this page ──
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 
 session_start();
+
+// ── Wipe all session data ──
 session_unset();
 session_destroy();
 
-// Delete the session cookie so the browser has nothing to restore
+// ── Delete the session cookie from the browser ──
 if (ini_get("session.use_cookies")) {
     $params = session_get_cookie_params();
     setcookie(
@@ -21,6 +23,7 @@ if (ini_get("session.use_cookies")) {
     );
 }
 
-// Redirect to landing page with no-cache headers
-header("Location: index.php");
+// ── Redirect to login page ──
+header("Location: index.php#auth");
 exit();
+?>

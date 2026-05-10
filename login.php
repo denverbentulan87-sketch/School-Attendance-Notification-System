@@ -8,7 +8,9 @@ if (isset($_POST['login'])) {
     $password = $_POST['password'];
 
     if (empty($email) || empty($password)) {
-        header("Location: index.php?error=Please+fill+in+all+fields");
+        // tab=login keeps Sign In tab active; old_email repopulates the email field
+        header("Location: index.php?tab=login&error=" . urlencode("Please fill in all fields")
+             . "&old_email=" . urlencode($email) . "#auth");
         exit();
     }
 
@@ -18,14 +20,16 @@ if (isset($_POST['login'])) {
     $result = $stmt->get_result();
 
     if ($result->num_rows === 0) {
-        header("Location: index.php?error=Invalid+email+or+password");
+        header("Location: index.php?tab=login&error=" . urlencode("Invalid email or password")
+             . "&old_email=" . urlencode($email) . "#auth");
         exit();
     }
 
     $user = $result->fetch_assoc();
 
     if (!password_verify($password, $user['password'])) {
-        header("Location: index.php?error=Invalid+email+or+password");
+        header("Location: index.php?tab=login&error=" . urlencode("Invalid email or password")
+             . "&old_email=" . urlencode($email) . "#auth");
         exit();
     }
 
@@ -49,7 +53,7 @@ if (isset($_POST['login'])) {
             header("Location: parent_dashboard.php");
             break;
         default:
-            header("Location: index.php?error=Unknown+role");
+            header("Location: index.php?error=" . urlencode("Unknown role") . "#auth");
             break;
     }
     exit();

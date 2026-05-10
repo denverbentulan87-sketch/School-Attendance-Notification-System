@@ -352,7 +352,7 @@ $result = $conn->query("SELECT * FROM users");
     .footer-links a:hover { color: var(--gray-3); }
 
     /* ══════════════════════════════════════
-       AUTH SECTION — centered, no left panel
+       AUTH SECTION
     ══════════════════════════════════════ */
     .auth-section {
       background: var(--navy);
@@ -442,7 +442,6 @@ $result = $conn->query("SELECT * FROM users");
     .field-wrap input::placeholder { color: var(--gray-3); font-weight: 400; }
     .field-wrap select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394A3B8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
 
-    /* ── Eye toggle button ── */
     .pw-toggle {
       position: absolute;
       right: 14px;
@@ -462,7 +461,6 @@ $result = $conn->query("SELECT * FROM users");
     .pw-toggle:hover { color: var(--gray-4); }
     .pw-toggle svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-    /* Shift padding right so text doesn't overlap the eye icon */
     .field-wrap.has-toggle input { padding-right: 44px; }
 
     .field-hint { font-size: 11.5px; color: var(--gray-3); margin-top: 6px; padding-left: 2px; font-weight: 400; }
@@ -498,11 +496,6 @@ $result = $conn->query("SELECT * FROM users");
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(18px); }
       to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes slideIn {
-      from { width: 0; opacity: 0; }
-      to   { width: 48px; opacity: 1; }
     }
 
     #view-register { max-height: calc(100vh - 200px); overflow-y: auto; padding-right: 4px; }
@@ -657,8 +650,7 @@ $result = $conn->query("SELECT * FROM users");
   </div>
 </section>
 
-
-<!-- AUTH SECTION — centered card, no left panel -->
+<!-- AUTH SECTION -->
 <div id="auth" class="auth-section">
   <div class="page">
     <div class="card">
@@ -671,7 +663,7 @@ $result = $conn->query("SELECT * FROM users");
 
       <!-- LOGIN FORM -->
       <div class="form-view active" id="view-login">
-        <?php if (isset($_GET['error']) && !isset($_GET['from_register'])): ?>
+        <?php if (isset($_GET['error']) && ($show_tab === 'login')): ?>
           <div class="alert alert-error">⚠️ <?= htmlspecialchars($_GET['error']) ?></div>
         <?php endif; ?>
         <div class="form-title">Welcome back</div>
@@ -681,7 +673,8 @@ $result = $conn->query("SELECT * FROM users");
             <label class="field-label">Email Address</label>
             <div class="field-wrap">
               <span class="field-icon">✉️</span>
-              <input type="email" name="email" placeholder="your@school.edu" required>
+              <input type="email" name="email" placeholder="your@school.edu"
+                     value="<?= htmlspecialchars($_GET['old_email'] ?? '') ?>" required>
             </div>
           </div>
           <div class="field-group">
@@ -698,15 +691,15 @@ $result = $conn->query("SELECT * FROM users");
             </div>
           </div>
           <div class="field-meta">
-     <a href="#" class="forgot-link" onclick="switchTab('register'); return false;">Don't have an account? <strong>Sign up</strong></a>
-       </div>
+            <a href="#" class="forgot-link" onclick="switchTab('register'); return false;">Don't have an account? <strong>Sign up</strong></a>
+          </div>
           <button class="btn-submit" type="submit" name="login">Sign In →</button>
         </form>
       </div>
 
       <!-- REGISTER FORM -->
       <div class="form-view" id="view-register">
-        <?php if (isset($_GET['error'])): ?>
+        <?php if (isset($_GET['error']) && ($show_tab === 'register')): ?>
           <div class="alert alert-error">⚠️ <?= htmlspecialchars($_GET['error']) ?></div>
         <?php endif; ?>
         <div class="form-title">Create account</div>
@@ -716,14 +709,16 @@ $result = $conn->query("SELECT * FROM users");
             <label class="field-label">Full Name</label>
             <div class="field-wrap">
               <span class="field-icon">👤</span>
-              <input type="text" name="fullname" placeholder="e.g. Maria Santos" required>
+              <input type="text" name="fullname" placeholder="e.g. Maria Santos"
+                     value="<?= htmlspecialchars($_GET['old_fullname'] ?? '') ?>" required>
             </div>
           </div>
           <div class="field-group">
             <label class="field-label">Email Address</label>
             <div class="field-wrap">
               <span class="field-icon">✉️</span>
-              <input type="email" name="email" placeholder="your@school.edu" required>
+              <input type="email" name="email" placeholder="your@school.edu"
+                     value="<?= htmlspecialchars($_GET['old_email'] ?? '') ?>" required>
             </div>
           </div>
           <div class="field-group">
@@ -732,9 +727,9 @@ $result = $conn->query("SELECT * FROM users");
               <span class="field-icon">🏫</span>
               <select name="role" id="role-select" required onchange="toggleParentEmail(this.value)">
                 <option value="">Select your role</option>
-                <option value="admin">Administrator</option>
-                <option value="student">Student</option>
-                <option value="parent">Parent</option>
+                <option value="admin"   <?= (($_GET['old_role'] ?? '') === 'admin')   ? 'selected' : '' ?>>Administrator</option>
+                <option value="student" <?= (($_GET['old_role'] ?? '') === 'student') ? 'selected' : '' ?>>Student</option>
+                <option value="parent"  <?= (($_GET['old_role'] ?? '') === 'parent')  ? 'selected' : '' ?>>Parent</option>
               </select>
             </div>
           </div>
@@ -742,7 +737,9 @@ $result = $conn->query("SELECT * FROM users");
             <label class="field-label">Parent Gmail <span style="color:#DC2626;">*</span></label>
             <div class="field-wrap">
               <span class="field-icon">📧</span>
-              <input type="email" name="parent_email" id="parent_email" placeholder="parent@gmail.com">
+              <input type="email" name="parent_email" id="parent_email"
+                     placeholder="parent@gmail.com"
+                     value="<?= htmlspecialchars($_GET['old_parent_email'] ?? '') ?>">
             </div>
             <div class="field-hint">Your parent will be notified if you miss attendance.</div>
           </div>
@@ -797,19 +794,14 @@ $result = $conn->query("SELECT * FROM users");
     const input = document.getElementById(inputId);
     const svg   = btn.querySelector('svg');
     const isHidden = input.type === 'password';
-
     input.type = isHidden ? 'text' : 'password';
-
-    // Swap between eye-open and eye-off SVG paths
     if (isHidden) {
-      // Eye-off (slashed)
       svg.innerHTML = `
         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
         <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
         <line x1="1" y1="1" x2="23" y2="23"/>
       `;
     } else {
-      // Eye-open
       svg.innerHTML = `
         <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/>
         <circle cx="12" cy="12" r="3"/>
@@ -846,8 +838,16 @@ $result = $conn->query("SELECT * FROM users");
     switchTab('login');
   }
 
-  <?php if (isset($_GET['error'])): ?>
+  // ── On page load: activate the correct tab based on ?tab= param ──
+  <?php if ($show_tab === 'register'): ?>
     switchTab('register');
+    // Restore parent email field if role was student
+    var oldRole = '<?= htmlspecialchars($_GET['old_role'] ?? '') ?>';
+    if (oldRole) {
+      var sel = document.getElementById('role-select');
+      sel.value = oldRole;
+      toggleParentEmail(oldRole);
+    }
   <?php endif; ?>
 
   <?php if (isset($_GET['success']) && $_GET['success'] === 'registered'): ?>

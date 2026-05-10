@@ -388,7 +388,7 @@ table.stu-table tbody tr:last-child td { border-bottom: none; }
         <table class="stu-table">
             <thead>
                 <tr>
-                    <th>#</th>
+                    <th>No.</th>
                     <th>Student</th>
                     <th>Parent Email</th>
                     <th>QR Code</th>
