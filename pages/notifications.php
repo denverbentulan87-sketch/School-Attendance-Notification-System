@@ -7,18 +7,25 @@ date_default_timezone_set('Asia/Manila');
 
 $today = date('Y-m-d');
 
+// ── Date filter for log ────────────────────────────────────────────────
+$log_date = !empty($_GET['log_date']) ? $conn->real_escape_string($_GET['log_date']) : '';
+$log_date_where = $log_date ? "AND DATE(n.created_at) = '$log_date'" : "";
+
+// ── Stat date: use filter date if set, else today ──────────────────────
+$stat_date = $log_date ?: $today;
+
 // ── Stats ──────────────────────────────────────────────────────────────
 $counts = ['absent' => 0, 'late' => 0, 'present' => 0];
 
 $lateRow = $conn->query("
     SELECT COUNT(*) as cnt FROM attendance
-    WHERE scan_date = '$today' AND status = 'late'
+    WHERE scan_date = '$stat_date' AND status = 'late'
 ")->fetch_assoc();
 $counts['late'] = (int)$lateRow['cnt'];
 
 $presentRow = $conn->query("
     SELECT COUNT(*) as cnt FROM attendance
-    WHERE scan_date = '$today' AND status IN ('present','on_time')
+    WHERE scan_date = '$stat_date' AND status IN ('present','on_time')
 ")->fetch_assoc();
 $counts['present'] = (int)$presentRow['cnt'];
 
@@ -27,7 +34,7 @@ $absentRow = $conn->query("
     WHERE role = 'student'
       AND id NOT IN (
           SELECT DISTINCT student_id FROM attendance
-          WHERE scan_date = '$today'
+          WHERE scan_date = '$stat_date'
             AND status IN ('present', 'on_time', 'late')
       )
 ")->fetch_assoc();
@@ -36,13 +43,13 @@ $counts['absent'] = (int)$absentRow['cnt'];
 $totalRow  = $conn->query("SELECT COUNT(*) as total FROM notifications")->fetch_assoc();
 $totalSent = $totalRow['total'] ?? 0;
 
-$todaySentRow = $conn->query("SELECT COUNT(*) as cnt FROM notifications WHERE DATE(created_at) = '$today'")->fetch_assoc();
+$todaySentRow = $conn->query("SELECT COUNT(*) as cnt FROM notifications WHERE DATE(created_at) = '$stat_date'")->fetch_assoc();
 $todaySent = (int)$todaySentRow['cnt'];
 
 $lastRow = $conn->query("SELECT created_at FROM notifications ORDER BY created_at DESC LIMIT 1")->fetch_assoc();
 $lastSentTime = $lastRow ? date('M d, Y h:i A', strtotime($lastRow['created_at'])) : 'No notifications yet';
 
-// ── Notification log (last 100) ────────────────────────────────────────
+// ── Notification log (last 100, filtered by date if set) ───────────────
 $log = $conn->query("
     SELECT
         n.id,
@@ -54,6 +61,7 @@ $log = $conn->query("
         u.parent_email
     FROM notifications n
     JOIN users u ON u.id = n.student_id
+    WHERE 1=1 $log_date_where
     ORDER BY n.created_at DESC
     LIMIT 100
 ");
@@ -187,6 +195,37 @@ function isHtmlMessage($message) {
 .filter-btn[data-f="late"].active     { border-color: #f59e0b; background: #fef3c7; color: #d97706; }
 .filter-btn[data-f="present"].active  { border-color: #22c55e; background: #dcfce7; color: #15803d; }
 
+/* Date filter bar */
+.date-filter-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 16px; padding: 14px 16px;
+    background: #f8fafc; border-radius: 12px; border: 1px solid #f1f5f9;
+}
+.date-filter-bar label { font-size: 12px; font-weight: 600; color: #64748b; white-space: nowrap; }
+.date-filter-bar input[type="date"] {
+    padding: 7px 12px; border-radius: 9px; border: 1.5px solid #e2e8f0;
+    font-size: 13px; font-family: 'DM Sans', sans-serif; color: #0f1923;
+    background: #fff; outline: none; transition: border 0.15s;
+}
+.date-filter-bar input[type="date"]:focus { border-color: #16a34a; }
+.btn-df-view {
+    padding: 8px 18px; background: #0f1923; color: #fff;
+    border: none; border-radius: 9px; font-size: 13px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.15s;
+}
+.btn-df-view:hover { background: #1e2d3d; }
+.btn-df-clear {
+    padding: 8px 14px; background: #f1f5f9; color: #64748b;
+    border-radius: 9px; font-size: 13px; font-weight: 600;
+    text-decoration: none; transition: background 0.15s;
+}
+.btn-df-clear:hover { background: #e2e8f0; }
+.df-active-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #dbeafe; color: #1d4ed8; font-size: 12px; font-weight: 600;
+    padding: 4px 12px; border-radius: 99px;
+}
+
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table th {
     background: #f8fafc; padding: 11px 14px; font-size: 11px; font-weight: 700;
@@ -284,17 +323,17 @@ function isHtmlMessage($message) {
             <div class="stat-sub">All time</div>
         </div>
         <div class="stat-card green">
-            <div class="stat-label">Sent Today</div>
+            <div class="stat-label"><?= $log_date ? 'Sent on Date' : 'Sent Today' ?></div>
             <div class="stat-val"><?= number_format($todaySent) ?></div>
-            <div class="stat-sub"><?= date('M d, Y') ?></div>
+            <div class="stat-sub"><?= date('M d, Y', strtotime($stat_date)) ?></div>
         </div>
         <div class="stat-card red">
-            <div class="stat-label">Absent Today</div>
+            <div class="stat-label"><?= $log_date ? 'Absent on Date' : 'Absent Today' ?></div>
             <div class="stat-val"><?= $counts['absent'] ?></div>
             <div class="stat-sub">No scan recorded</div>
         </div>
         <div class="stat-card amber">
-            <div class="stat-label">Late Today</div>
+            <div class="stat-label"><?= $log_date ? 'Late on Date' : 'Late Today' ?></div>
             <div class="stat-val"><?= $counts['late'] ?></div>
             <div class="stat-sub">Arrived after cutoff</div>
         </div>
@@ -333,6 +372,22 @@ function isHtmlMessage($message) {
                 <button class="filter-btn" data-f="present" onclick="filterLog(this)">Present</button>
             </div>
         </div>
+
+        <!-- Date Filter Bar -->
+        <form method="GET" class="date-filter-bar">
+            <input type="hidden" name="page" value="notifications">
+            <label>📅 Filter by Date:</label>
+            <input type="date" name="log_date"
+                value="<?= htmlspecialchars($log_date) ?>"
+                max="<?= $today ?>">
+            <button type="submit" class="btn-df-view">View</button>
+            <?php if ($log_date): ?>
+                <a href="?page=notifications" class="btn-df-clear">✕ Clear</a>
+                <span class="df-active-badge">
+                    📅 <?= date('F d, Y', strtotime($log_date)) ?>
+                </span>
+            <?php endif; ?>
+        </form>
 
         <div style="overflow-x:auto;">
         <table class="data-table" id="notif-log-table">
@@ -406,7 +461,10 @@ function isHtmlMessage($message) {
                     <td colspan="6">
                         <div class="empty-state">
                             <div class="empty-icon">📭</div>
-                            No notifications sent yet. They will appear here automatically once students are marked absent or late.
+                            <?= $log_date
+                                ? 'No notifications found for <strong>' . date('F d, Y', strtotime($log_date)) . '</strong>.'
+                                : 'No notifications sent yet. They will appear here automatically once students are marked absent or late.'
+                            ?>
                         </div>
                     </td>
                 </tr>

@@ -29,7 +29,7 @@ function getInitials(string $n): string {
     $i = strtoupper(substr($p[0], 0, 1));
     if (count($p) > 1) $i .= strtoupper(substr(end($p), 0, 1));
     return $i;
-}
+}   
 
 $words    = array_slice(explode(' ', $parent_name), 0, 2);
 $initials = strtoupper(implode('', array_map(fn($w) => $w[0], $words)));
@@ -372,7 +372,7 @@ table tbody tr:hover td { background: #f9fafb; }
             </div>
             <div class="stat-card">
                 <div class="stat-icon si-green"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-                <div><div class="stat-label">Present</div><div class="stat-value"><?= $present_count ?></div><div class="stat-sub">Days attended</div></div>
+                <div class="stat-label">Present</div><div class="stat-value"><?= $present_count + $late_count ?></div><div class="stat-sub">Days attended (incl. late)</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon si-amber"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>

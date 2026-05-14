@@ -3,39 +3,44 @@ include 'includes/db.php';
 
 $today = date('Y-m-d');
 
+// ✅ Date filter — defaults to today
+$selected_date = isset($_GET['dash_date']) && !empty($_GET['dash_date'])
+    ? $conn->real_escape_string($_GET['dash_date'])
+    : $today;
+
+$is_today = ($selected_date === $today);
+
 $total = $conn->query("SELECT COUNT(*) AS total FROM users WHERE role='student'")->fetch_assoc()['total'];
 
 $presentToday = $conn->query("
     SELECT COUNT(DISTINCT student_id) AS total
     FROM attendance
     WHERE status IN ('present', 'on_time', 'late')
-      AND scan_date = '$today'
+      AND scan_date = '$selected_date'
 ")->fetch_assoc()['total'];
 
 $absentToday = $conn->query("
-    SELECT COUNT(*) AS total FROM users
-    WHERE role = 'student'
-      AND id NOT IN (
-          SELECT DISTINCT student_id
-          FROM attendance
-          WHERE scan_date = '$today'
-            AND status IN ('present', 'on_time', 'late')
-      )
+    SELECT COUNT(DISTINCT student_id) AS total
+    FROM attendance
+    WHERE status = 'absent'
+      AND scan_date = '$selected_date'
 ")->fetch_assoc()['total'];
 
-$notifications = $conn->query("SELECT COUNT(*) AS total FROM notifications")->fetch_assoc()['total'];
+$notifications = $conn->query("
+    SELECT COUNT(*) AS total FROM notifications
+    WHERE DATE(created_at) = '$selected_date'
+")->fetch_assoc()['total'];
 
 $recent = $conn->query("
     SELECT users.fullname AS name, 
-           COALESCE(attendance.status, 'absent') AS status,
-           COALESCE(attendance.scan_date, '$today') AS scan_date,
-           COALESCE(attendance.scan_time, '00:00:00') AS scan_time
-    FROM users
-    LEFT JOIN attendance ON attendance.student_id = users.id 
-        AND attendance.scan_date = '$today'
-    WHERE users.role = 'student'
-    ORDER BY attendance.scan_date DESC, attendance.scan_time DESC
-    LIMIT 5
+           attendance.status,
+           attendance.scan_date,
+           attendance.scan_time
+    FROM attendance
+    JOIN users ON users.id = attendance.student_id
+    WHERE attendance.scan_date = '$selected_date'
+    ORDER BY attendance.date_added DESC
+    LIMIT 10
 ");
 
 $weeklyData = ['present' => [], 'absent' => []];
@@ -52,7 +57,6 @@ for ($i = 6; $i >= 0; $i--) {
     $weeklyData['absent'][]  = max(0, (int)$total - $p);
 }
 
-// Helper: get initials from full name
 function getInitials($name) {
     $parts = array_filter(explode(' ', trim($name)));
     $initials = '';
@@ -62,17 +66,16 @@ function getInitials($name) {
     return $initials ?: '?';
 }
 
-// Helper: pick a consistent avatar color based on name
 function avatarColor($name) {
     $colors = [
-        ['#dbeafe','#1d4ed8'], // blue
-        ['#dcfce7','#15803d'], // green
-        ['#ede9fe','#6d28d9'], // purple
-        ['#fef3c7','#92400e'], // amber
-        ['#fee2e2','#b91c1c'], // red
-        ['#e0f2fe','#0369a1'], // sky
-        ['#fce7f3','#9d174d'], // pink
-        ['#f0fdf4','#166534'], // emerald
+        ['#dbeafe','#1d4ed8'],
+        ['#dcfce7','#15803d'],
+        ['#ede9fe','#6d28d9'],
+        ['#fef3c7','#92400e'],
+        ['#fee2e2','#b91c1c'],
+        ['#e0f2fe','#0369a1'],
+        ['#fce7f3','#9d174d'],
+        ['#f0fdf4','#166534'],
     ];
     $idx = abs(crc32($name)) % count($colors);
     return $colors[$idx];
@@ -108,7 +111,6 @@ function avatarColor($name) {
 .dash-table tr:last-child td { border-bottom:none; }
 .dash-table tr:hover td { background:#fafcff; }
 
-/* Avatar + name cell */
 .student-cell { display:flex; align-items:center; gap:10px; }
 .avatar-circle {
     width:36px; height:36px; border-radius:50%;
@@ -118,12 +120,42 @@ function avatarColor($name) {
 }
 .student-cell-name { font-weight:600; font-size:13.5px; color:#1e293b; }
 
-/* Status badges */
 .sp { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; }
 .sp-present { background:#dcfce7; color:#15803d; }
 .sp-ontime  { background:#dcfce7; color:#15803d; }
 .sp-late    { background:#fef3c7; color:#92400e; }
 .sp-absent  { background:#fee2e2; color:#b91c1c; }
+
+/* ✅ Date filter bar */
+.dash-filter-bar {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px; flex-wrap: wrap;
+}
+.dash-filter-bar input[type="date"] {
+    padding: 8px 12px; border: 1.5px solid #e2e8f0;
+    border-radius: 9px; font-size: 13px; color: #0f1923;
+    background: #fff; outline: none; transition: border 0.15s;
+    font-family: 'DM Sans', sans-serif;
+}
+.dash-filter-bar input[type="date"]:focus { border-color: #16a34a; }
+.dash-filter-btn {
+    padding: 8px 18px; border-radius: 9px; border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    background: #16a34a; color: #fff; transition: background 0.15s;
+    font-family: 'DM Sans', sans-serif;
+}
+.dash-filter-btn:hover { background: #15803d; }
+.dash-filter-reset {
+    padding: 8px 14px; border-radius: 9px; font-size: 13px;
+    font-weight: 600; text-decoration: none; background: #fff;
+    color: #475569; border: 1.5px solid #e2e8f0; transition: background 0.15s;
+    font-family: 'DM Sans', sans-serif;
+}
+.dash-filter-reset:hover { background: #f1f5f9; }
+.dash-date-label {
+    font-size: 13px; color: #64748b; font-weight: 500;
+}
+.dash-date-label strong { color: #0f1923; }
 
 .dash-charts { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
 @media(max-width:900px){ .dash-charts { grid-template-columns:1fr; } }
@@ -137,21 +169,35 @@ function avatarColor($name) {
         <div class="dash-card-value purple"><?= $total ?></div>
     </div>
     <div class="dash-card">
-        <div class="dash-card-label">Present Today</div>
+        <div class="dash-card-label"><?= $is_today ? 'Present Today' : 'Present' ?></div>
         <div class="dash-card-value green"><?= $presentToday ?></div>
     </div>
     <div class="dash-card">
-        <div class="dash-card-label">Absent Today</div>
+        <div class="dash-card-label"><?= $is_today ? 'Absent Today' : 'Absent' ?></div>
         <div class="dash-card-value red"><?= $absentToday ?></div>
     </div>
     <div class="dash-card">
-        <div class="dash-card-label">Notifications Sent</div>
+        <div class="dash-card-label"><?= $is_today ? 'Notifications Sent' : 'Notifications' ?></div>
         <div class="dash-card-value amber"><?= $notifications ?></div>
     </div>
 </div>
 
 <div class="dash-table-card">
-    <h3>📋 Recent Attendance</h3>
+    <h3>📋 Attendance Records</h3>
+
+    <!-- ✅ Date filter -->
+    <form method="GET" class="dash-filter-bar">
+        <input type="hidden" name="page" value="dashboard">
+        <input type="date" name="dash_date" value="<?= htmlspecialchars($selected_date) ?>" max="<?= $today ?>">
+        <button type="submit" class="dash-filter-btn">🔍 Filter</button>
+        <?php if (!$is_today): ?>
+            <a href="?page=dashboard" class="dash-filter-reset">✕ Back to Today</a>
+        <?php endif; ?>
+        <span class="dash-date-label">
+            Showing: <strong><?= $is_today ? 'Today' : date('F j, Y', strtotime($selected_date)) ?></strong>
+        </span>
+    </form>
+
     <table class="dash-table">
         <thead>
             <tr><th>Name</th><th>Status</th><th>Date</th><th>Time</th></tr>
@@ -184,15 +230,21 @@ function avatarColor($name) {
                 <td style="color:#64748b;font-size:12px;"><?= date('M d, Y', strtotime($r['scan_date'])) ?></td>
                 <td style="color:#64748b;font-size:12px;">
                     <?php
-                    echo ($r['scan_time'] === '00:00:00' && $s === 'absent')
-                        ? '—'
-                        : date('g:i A', strtotime($r['scan_time']));
+                    if ($s === 'absent' && $r['scan_time'] === '17:00:00') {
+                        echo '5:00 PM';
+                    } elseif ($r['scan_time'] === '00:00:00' && $s === 'absent') {
+                        echo '—';
+                    } else {
+                        echo date('g:i A', strtotime($r['scan_time']));
+                    }
                     ?>
                 </td>
             </tr>
             <?php endwhile; ?>
         <?php else: ?>
-            <tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:30px;font-style:italic;">No attendance records found</td></tr>
+            <tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:30px;font-style:italic;">
+                No attendance records found for <?= $is_today ? 'today' : date('F j, Y', strtotime($selected_date)) ?>
+            </td></tr>
         <?php endif; ?>
         </tbody>
     </table>
@@ -200,7 +252,7 @@ function avatarColor($name) {
 
 <div class="dash-charts">
     <div class="chart-card">
-        <h3>📊 Today Attendance</h3>
+        <h3>📊 <?= $is_today ? 'Today' : date('M d', strtotime($selected_date)) ?> Attendance</h3>
         <canvas id="todayChart"></canvas>
     </div>
     <div class="chart-card">
@@ -215,7 +267,7 @@ new Chart(document.getElementById('todayChart'), {
     type: 'bar',
     data: {
         labels: ['Present / On Time', 'Absent'],
-        datasets: [{ label: 'Today', data: [<?= (int)$presentToday ?>, <?= (int)$absentToday ?>],
+        datasets: [{ label: 'Attendance', data: [<?= (int)$presentToday ?>, <?= (int)$absentToday ?>],
             backgroundColor: ['rgba(34,197,94,0.7)','rgba(239,68,68,0.7)'],
             borderColor: ['#16a34a','#dc2626'], borderWidth:2, borderRadius:6 }]
     },

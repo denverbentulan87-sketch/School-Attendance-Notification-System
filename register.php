@@ -35,9 +35,10 @@ function validate_gmail_format(string $email): string|bool {
         return "Only Gmail accounts (@gmail.com) are accepted. \"$email\" is not a Gmail address.";
     }
 
-    if (!checkdnsrr($domain, 'MX')) {
-        return "The domain \"$domain\" does not have valid mail server records.";
-    }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    header("Location: index.php?tab=register&error=Invalid+email+format&old_fullname=...");
+    exit();
+}
 
     return true;
 }

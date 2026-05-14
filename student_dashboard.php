@@ -11,6 +11,8 @@
     exit();
 }
 
+include_once "includes/db.php";
+
 $name       = $_SESSION['name'];
 $role       = $_SESSION['role'];
 $page       = $_GET['page'] ?? 'dashboard';
@@ -22,7 +24,7 @@ $sq->bind_param("i", $student_id);
 $sq->execute();
 $me = $sq->get_result()->fetch_assoc();
 
-$aq = $conn->prepare("SELECT COALESCE(SUM(status='present'),0) AS present, COALESCE(SUM(status='absent'),0) AS absent FROM attendance WHERE student_id = ?");
+$aq = $conn->prepare("SELECT COALESCE(SUM(status IN ('present','late')),0) AS present, COALESCE(SUM(status='absent'),0) AS absent FROM attendance WHERE student_id = ?");
 $aq->bind_param("i", $student_id);
 $aq->execute();
 $my_att = $aq->get_result()->fetch_assoc();

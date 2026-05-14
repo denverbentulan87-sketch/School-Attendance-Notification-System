@@ -2,6 +2,7 @@
 include 'includes/db.php';
 
 $today = date('Y-m-d');
+$active_date = !empty($_GET['filter_date']) ? $conn->real_escape_string($_GET['filter_date']) : $today;
 
 $totalStudents = $conn->query("SELECT COUNT(*) AS total FROM users WHERE role='student'")->fetch_assoc()['total'];
 
@@ -9,25 +10,21 @@ $presentToday = $conn->query("
     SELECT COUNT(DISTINCT student_id) AS total
     FROM attendance
     WHERE status IN ('present', 'on_time', 'late')
-      AND scan_date = '$today'
+      AND scan_date = '$active_date'
 ")->fetch_assoc()['total'];
 
 $absentToday = $conn->query("
-    SELECT COUNT(*) AS total FROM users
-    WHERE role = 'student'
-      AND id NOT IN (
-          SELECT DISTINCT student_id
-          FROM attendance
-          WHERE scan_date = '$today'
-            AND status IN ('present', 'on_time', 'late')
-      )
+    SELECT COUNT(DISTINCT student_id) AS total
+    FROM attendance
+    WHERE status = 'absent'
+      AND scan_date = '$active_date'
 ")->fetch_assoc()['total'];
 
 $lateToday = $conn->query("
     SELECT COUNT(DISTINCT student_id) AS total
     FROM attendance
     WHERE status = 'late'
-      AND scan_date = '$today'
+      AND scan_date = '$active_date'
 ")->fetch_assoc()['total'];
 
 // Filters
@@ -63,15 +60,15 @@ $scan_date_filter = !empty($filter_date) ? $filter_date : $today;
 
 $records = $conn->query("
     SELECT users.fullname,
-           COALESCE(attendance.scan_date, '$scan_date_filter') AS scan_date,
-           COALESCE(attendance.scan_time, '00:00:00') AS scan_time,
-           COALESCE(attendance.status, 'absent') AS status
-    FROM users
-    LEFT JOIN attendance ON attendance.student_id = users.id
-        AND attendance.scan_date = '$scan_date_filter'
-    WHERE users.role = 'student'
+           attendance.scan_date,
+           attendance.scan_time,
+           attendance.status
+    FROM attendance
+    JOIN users ON users.id = attendance.student_id
+    WHERE attendance.scan_date = '$scan_date_filter'
+      AND users.role = 'student'
     $where
-    ORDER BY attendance.scan_date DESC, attendance.scan_time DESC
+    ORDER BY attendance.scan_time DESC
 ");
 ?>
 <style>
@@ -179,7 +176,7 @@ $records = $conn->query("
     <!-- Today's Summary — cards link to filtered view -->
     <div class="att-card">
         <div class="att-card-header">
-            <h2>Today's Summary</h2>
+           <h2><?= $active_date === $today ? "Today's Summary" : "Summary for " . date('M d, Y', strtotime($active_date)) ?></h2>
             <a href="export_attendance.php" class="btn-export">&#8595; Export PDF</a>
         </div>
         <div class="att-card-body">

@@ -12,6 +12,8 @@
     exit();
 }
 
+include_once "includes/db.php";
+
 $parent_id    = $_SESSION['user_id'];
 $parent_name  = $_SESSION['name'];
 $page         = $_GET['page'] ?? 'dashboard';
@@ -61,11 +63,10 @@ if ($selected_child) {
     $aq->execute();
     $att_records = $aq->get_result()->fetch_all(MYSQLI_ASSOC);
     foreach ($att_records as $r) {
-        $rs = strtolower(trim($r['status'] ?? ''));
-        if ($rs === 'present')     $present_count++;
-        elseif ($rs === 'late')    $late_count++;
-        elseif ($rs === 'absent')  $absent_count++;
-    }
+    if ($r['status'] === 'late')        $late_count++;
+    if ($r['status'] === 'present' || $r['status'] === 'late') $present_count++;
+    if ($r['status'] === 'absent')      $absent_count++;
+}
 }
 
 $total       = $present_count + $late_count + $absent_count;

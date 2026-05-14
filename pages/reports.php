@@ -22,15 +22,12 @@ $late = $conn->query("
       AND scan_date = '$date'
 ")->fetch_assoc()['total'];
 
+// ✅ FIXED: only count actual absent records, not students who haven't scanned yet
 $absent = $conn->query("
-    SELECT COUNT(*) AS total FROM users
-    WHERE role = 'student'
-      AND id NOT IN (
-          SELECT DISTINCT student_id
-          FROM attendance
-          WHERE scan_date = '$date'
-            AND status IN ('present', 'on_time', 'late')
-      )
+    SELECT COUNT(DISTINCT student_id) AS total
+    FROM attendance
+    WHERE status = 'absent'
+      AND scan_date = '$date'
 ")->fetch_assoc()['total'];
 
 $percentage     = $total > 0 ? round(($present / $total) * 100) : 0;
@@ -45,52 +42,46 @@ if ($statusFilter === 'present') {
 }
 
 if ($statusFilter === 'absent') {
-    // FIX: was using NULL AS scan_time — now LEFT JOINs attendance to get actual scan_time
-    // for students who scanned but were marked absent (scanned in 12PM–5PM window)
-    $records = $conn->query("
-        SELECT users.fullname,
-               COALESCE(attendance.status, 'absent') AS status,
-               '$date' AS scan_date,
-               attendance.scan_time
-        FROM users
-        LEFT JOIN attendance ON attendance.student_id = users.id
-            AND attendance.scan_date = '$date'
-        WHERE users.role = 'student'
-          AND users.id NOT IN (
-              SELECT DISTINCT student_id
-              FROM attendance
-              WHERE scan_date = '$date'
-                AND status IN ('present', 'on_time', 'late')
-          )
-        ORDER BY users.fullname ASC
-    ");
-} elseif ($statusFilter === 'all') {
-    $records = $conn->query("
-        SELECT users.fullname,
-               COALESCE(attendance.status, 'absent') AS status,
-               COALESCE(attendance.scan_date, '$date') AS scan_date,
-               attendance.scan_time
-        FROM users
-        LEFT JOIN attendance
-               ON attendance.student_id = users.id
-              AND attendance.scan_date  = '$date'
-        WHERE users.role = 'student'
-        ORDER BY
-            FIELD(COALESCE(attendance.status,'absent'), 'present','on_time','late','absent'),
-            attendance.scan_time DESC
-    ");
-} else {
+    // ✅ FIXED: only show students with actual absent records, not everyone without a scan
     $records = $conn->query("
         SELECT users.fullname,
                attendance.status,
                attendance.scan_date,
                attendance.scan_time
-        FROM users
-        INNER JOIN attendance
-               ON attendance.student_id = users.id
-              AND attendance.scan_date  = '$date'
-              $statusWhere
-        WHERE users.role = 'student'
+        FROM attendance
+        JOIN users ON users.id = attendance.student_id
+        WHERE attendance.scan_date = '$date'
+          AND attendance.status = 'absent'
+          AND users.role = 'student'
+        ORDER BY users.fullname ASC
+    ");
+} elseif ($statusFilter === 'all') {
+    // ✅ FIXED: only show students with actual records today, not ghost rows
+    $records = $conn->query("
+        SELECT users.fullname,
+               attendance.status,
+               attendance.scan_date,
+               attendance.scan_time
+        FROM attendance
+        JOIN users ON users.id = attendance.student_id
+        WHERE attendance.scan_date = '$date'
+          AND users.role = 'student'
+        ORDER BY
+            FIELD(attendance.status, 'present','on_time','late','absent'),
+            attendance.scan_time DESC
+    ");
+} else {
+    // ✅ FIXED: same — only actual records
+    $records = $conn->query("
+        SELECT users.fullname,
+               attendance.status,
+               attendance.scan_date,
+               attendance.scan_time
+        FROM attendance
+        JOIN users ON users.id = attendance.student_id
+        WHERE attendance.scan_date = '$date'
+          AND users.role = 'student'
+          $statusWhere
         ORDER BY attendance.scan_time DESC
     ");
 }
@@ -317,8 +308,6 @@ if ($statusFilter === 'absent') {
                     <?= date('M d, Y', strtotime($r['scan_date'])) ?>
                 </td>
                 <td style="color:#64748b;font-size:13px;">
-                    <!-- FIX: removed $s === 'absent' condition that was forcing '—' for absent records -->
-                    <!-- Now shows actual scan time if it exists, regardless of status -->
                     <?= (!empty($r['scan_time']) && $r['scan_time'] !== '00:00:00')
                         ? date('g:i A', strtotime($r['scan_time']))
                         : '—' ?>

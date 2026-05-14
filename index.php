@@ -1,5 +1,9 @@
 <?php
 include 'includes/db.php';
+
+// ✅ FIX 1: Define $show_tab — was missing, caused PHP errors that broke all JS
+$show_tab = $_GET['tab'] ?? 'login';
+
 $result = $conn->query("SELECT * FROM users");
 ?>
 <!DOCTYPE html>
@@ -645,7 +649,8 @@ $result = $conn->query("SELECT * FROM users");
     <p class="section-sub">Join Inabanga College's unified attendance system. Sign in or create your account below.</p>
     <div class="cta-actions">
       <a href="#auth" class="btn-hero-primary">Sign In Now →</a>
-      <a href="#auth" class="btn-hero-secondary" onclick="setTimeout(()=>switchTab('register'),100)">Create Account</a>
+      <!-- ✅ FIX 2: scrollToRegister scrolls AND switches tab reliably -->
+      <a href="#auth" class="btn-hero-secondary" onclick="scrollToRegister(); return false;">Create Account</a>
     </div>
   </div>
 </section>
@@ -691,7 +696,8 @@ $result = $conn->query("SELECT * FROM users");
             </div>
           </div>
           <div class="field-meta">
-            <a href="#" class="forgot-link" onclick="switchTab('register'); return false;">Don't have an account? <strong>Sign up</strong></a>
+            <!-- ✅ FIX 3: "Don't have an account?" now calls scrollToRegister() — switches tab AND scrolls -->
+            <a href="#" class="forgot-link" onclick="scrollToRegister(); return false;">Don't have an account? <strong>Sign up</strong></a>
           </div>
           <button class="btn-submit" type="submit" name="login">Sign In →</button>
         </form>
@@ -823,14 +829,26 @@ $result = $conn->query("SELECT * FROM users");
     }
   }
 
-  /* ── Tab switching ── */
+  /* ── FIX 4: Improved switchTab — also hides success splash ── */
   function switchTab(tab) {
-    ['view-login','view-register'].forEach(id =>
-      document.getElementById(id).classList.remove('active'));
-    ['tab-login','tab-register'].forEach(id =>
-      document.getElementById(id).classList.remove('active'));
+    // Hide all views
+    document.getElementById('view-login').classList.remove('active');
+    document.getElementById('view-register').classList.remove('active');
+    document.getElementById('reg-success').style.display = 'none';
+
+    // Deactivate all tab buttons
+    document.getElementById('tab-login').classList.remove('active');
+    document.getElementById('tab-register').classList.remove('active');
+
+    // Show selected view and activate its tab button
     document.getElementById('view-' + tab).classList.add('active');
     document.getElementById('tab-' + tab).classList.add('active');
+  }
+
+  /* ── FIX 5: New helper — switches to Register tab AND scrolls to the card ── */
+  function scrollToRegister() {
+    switchTab('register');
+    document.getElementById('auth').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function goToLogin() {
@@ -841,7 +859,6 @@ $result = $conn->query("SELECT * FROM users");
   // ── On page load: activate the correct tab based on ?tab= param ──
   <?php if ($show_tab === 'register'): ?>
     switchTab('register');
-    // Restore parent email field if role was student
     var oldRole = '<?= htmlspecialchars($_GET['old_role'] ?? '') ?>';
     if (oldRole) {
       var sel = document.getElementById('role-select');
@@ -856,7 +873,7 @@ $result = $conn->query("SELECT * FROM users");
     document.getElementById('reg-success').style.display = 'flex';
   <?php endif; ?>
 
-  /* ── Smooth scroll ── */
+  /* ── Smooth scroll for all anchor links ── */
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       const target = document.querySelector(a.getAttribute('href'));
