@@ -8,19 +8,18 @@ require __DIR__ . '/../vendor/autoload.php';
 function create_mailer(): PHPMailer {
     $mail = new PHPMailer(true);
 
-    $mail->isSMTP();    
-    $mail->Host       = 'smtp.gmail.com';
+    $mail->isSMTP();
+    $mail->Host       = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
     $mail->SMTPAuth   = true;
-    $mail->Username   = 'denverbentulan87@gmail.com';
-    $mail->Password   = 'cnad rahg crml ptsq';
+    $mail->Username   = getenv('SMTP_USER');
+    $mail->Password   = getenv('SMTP_PASS');
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Port       = 587;
 
-    // ✅ ADD THESE TWO LINES:
     $mail->CharSet  = PHPMailer::CHARSET_UTF8;
     $mail->Encoding = 'base64';
 
-    $mail->setFrom('denverbentulan87@gmail.com', 'School Attendance and Notification System');
+    $mail->setFrom(getenv('SMTP_USER'), 'School Attendance and Notification System');
     return $mail;
 }
 
@@ -118,7 +117,7 @@ function send_qr_email(string $student_email, string $student_name, string $qr_u
  * STEP 1: Probe Gmail's SMTP in real-time to check if the inbox exists.
  */
 function verify_gmail_exists(string $email): bool {
-    $sender = 'denverbentulan87@gmail.com';
+   $sender = getenv('SMTP_USER');
 
     try {
         $socket = @stream_socket_client(
@@ -159,7 +158,7 @@ function verify_gmail_exists(string $email): bool {
         $read();
         $write(base64_encode($sender));
         $read();
-        $write(base64_encode('cnad rahg crml ptsq'));
+       $write(base64_encode(getenv('SMTP_PASS')));
         $authResponse = $read();
 
         if (strpos($authResponse, '235') === false) {
