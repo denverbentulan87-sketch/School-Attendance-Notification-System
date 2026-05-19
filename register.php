@@ -7,8 +7,6 @@ include "includes/mailer.php";
 
 function redirect_error(string $msg, string $page = 'index.php'): never {
     if ($page === 'index.php') {
-        // Pass tab=register so index.php opens the Register tab.
-        // Also pass back old field values so the user doesn't lose their input.
         $old = '';
         foreach (['fullname','email','role','parent_email'] as $field) {
             if (!empty($_POST[$field])) {
@@ -36,9 +34,9 @@ function validate_gmail_format(string $email): string|bool {
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    header("Location: index.php?tab=register&error=Invalid+email+format&old_fullname=...");
-    exit();
-}
+        header("Location: index.php?tab=register&error=Invalid+email+format&old_fullname=...");
+        exit();
+    }
 
     return true;
 }
@@ -83,6 +81,20 @@ if (isset($_POST['register'])) {
     if ($password !== $confirm) {
         redirect_error("Passwords do not match.");
     }
+
+    // ── Password strength validation ───────────────────────────────────────
+    if (strlen($password) < 8) {
+        redirect_error("Password must be at least 8 characters long.");
+    }
+
+    if (!preg_match('/[A-Za-z]/', $password)) {
+        redirect_error("Password must contain at least one letter.");
+    }
+
+    if (!preg_match('/[0-9]/', $password)) {
+        redirect_error("Password must contain at least one number.");
+    }
+    // ──────────────────────────────────────────────────────────────────────
 
     $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
