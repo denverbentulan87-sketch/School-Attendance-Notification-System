@@ -1,8 +1,5 @@
 [phases.setup]
-nixPkgs = ["php82", "php82Extensions.mysqli", "php82Extensions.pdo_mysql", "composer"]
-
-[phases.install]
-cmds = ["composer install --ignore-platform-reqs --no-dev"]
+nixPkgs = ["php82", "php82Extensions.mysqli", "php82Extensions.pdo_mysql"]
 
 [start]
 cmd = "php -S 0.0.0.0:$PORT"
